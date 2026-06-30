@@ -1,11 +1,23 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class SyncService extends ChangeNotifier {
-  Future<void> saveSurvey(String jobId, Map<String, dynamic> data) async {
+  final String baseUrl = 'http://192.168.18.183:8000/api';
+
+  Future<void> saveSurvey(
+    String jobId,
+    String bankName,
+    Map<String, dynamic> data,
+  ) async {
     final box = Hive.box('surveyQueue');
-    await box.put(jobId, {'jobId': jobId, 'payload': data, 'synced': false});
+    await box.put(jobId, {
+      'jobId': jobId,
+      'bankName': bankName,
+      'payload': data,
+      'synced': false,
+    });
     notifyListeners();
   }
 
@@ -25,6 +37,38 @@ class SyncService extends ChangeNotifier {
   }
 
   Future<void> syncPendingSurveys() async {
-    // Sync stub
+    final box = Hive.box('surveyQueue');
+    for (var key in box.keys) {
+      final item = box.get(key);
+      if (item != null && item['synced'] == false) {
+        String bankName = item['bankName'];
+        String jobId = item['jobId'];
+        Map<String, dynamic> payload = Map<String, dynamic>.from(
+          item['payload'],
+        );
+
+        // E.g., /api/storeReportDataBAF/1234
+        String endpoint = '$baseUrl/storeReportData$bankName/$jobId';
+
+        try {
+          final response = await http.post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: json.encode(payload),
+          );
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            item['synced'] = true;
+            await box.put(key, item);
+          }
+        } catch (e) {
+          debugPrint('Sync failed for $jobId: $e');
+        }
+      }
+    }
+    notifyListeners();
   }
 }

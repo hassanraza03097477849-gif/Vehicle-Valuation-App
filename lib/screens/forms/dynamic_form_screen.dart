@@ -61,14 +61,14 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
 
   void _autoSave() {
     final syncService = Provider.of<SyncService>(context, listen: false);
-    syncService.saveSurvey(widget.jobId, _formData);
+    syncService.saveSurvey(widget.jobId, widget.bankName, _formData);
   }
 
   void _saveForm() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       final syncService = Provider.of<SyncService>(context, listen: false);
-      syncService.saveSurvey(widget.jobId, _formData);
+      syncService.saveSurvey(widget.jobId, widget.bankName, _formData);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Survey Saved successfully!')),
@@ -132,6 +132,41 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
             },
           ),
         );
+      case 'date':
+      case 'time':
+        // Display a text field with a tap handler to open a picker (simplified text entry for now)
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: TextFormField(
+            decoration: InputDecoration(
+              labelText: '${field.label} (${field.type})',
+              border: const OutlineInputBorder(),
+              suffixIcon: Icon(
+                field.type == 'date' ? Icons.calendar_today : Icons.access_time,
+              ),
+            ),
+            initialValue: _formData[field.key]?.toString(),
+            onChanged: (value) {
+              _formData[field.key] = value;
+              _autoSave();
+            },
+          ),
+        );
+      case 'checkbox':
+        bool isChecked =
+            _formData[field.key] == true ||
+            _formData[field.key] == 'true' ||
+            _formData[field.key] == 1;
+        return CheckboxListTile(
+          title: Text(field.label),
+          value: isChecked,
+          onChanged: (bool? value) {
+            setState(() {
+              _formData[field.key] = value;
+              _autoSave();
+            });
+          },
+        );
       case 'dropdown':
         List<String> options = field.options ?? [];
         if (options.isEmpty) {
@@ -141,9 +176,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
           ]);
         }
 
-        String? currentValue = _formData[field.key];
+        String? currentValue = _formData[field.key]?.toString();
         if (currentValue != null && !options.contains(currentValue)) {
-          currentValue = null;
+          // If the cached API hasn't loaded or it's a new free-text value, fall back to null
+          // or we could allow free-text input if needed.
+          if (!options.contains(currentValue)) {
+            options.add(currentValue);
+          }
         }
 
         return Padding(
