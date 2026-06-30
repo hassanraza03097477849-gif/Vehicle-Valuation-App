@@ -20,6 +20,24 @@ class ModernFormField extends StatefulWidget {
 }
 
 class _ModernFormFieldState extends State<ModernFormField> {
+  late dynamic currentValue;
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    currentValue = widget.initialValue;
+    _focusNode.addListener(() {
+      setState(() {});
+    });
+  }
+  
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final metadata = context.watch<MetadataService>();
@@ -31,6 +49,7 @@ class _ModernFormFieldState extends State<ModernFormField> {
       case 'text':
       case 'number':
         content = TextFormField(
+          focusNode: _focusNode,
           decoration: _buildDecoration(),
           keyboardType: widget.field.type == 'number' ? TextInputType.number : TextInputType.text,
           initialValue: widget.initialValue?.toString(),
@@ -40,6 +59,7 @@ class _ModernFormFieldState extends State<ModernFormField> {
       case 'date':
       case 'time':
         content = TextFormField(
+          focusNode: _focusNode,
           decoration: _buildDecoration().copyWith(
             suffixIcon: Icon(
               widget.field.type == 'date' ? Icons.calendar_today_rounded : Icons.access_time_rounded,
@@ -78,6 +98,7 @@ class _ModernFormFieldState extends State<ModernFormField> {
         }
         
         content = DropdownButtonFormField<String>(
+          focusNode: _focusNode,
           decoration: _buildDecoration(),
           initialValue: currentValue,
           icon: Icon(Icons.expand_more_rounded, color: theme.colorScheme.primary),
@@ -96,24 +117,28 @@ class _ModernFormFieldState extends State<ModernFormField> {
   }
   
   InputDecoration _buildDecoration() {
+    final theme = Theme.of(context);
     return InputDecoration(
       labelText: widget.field.label,
-      labelStyle: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF727786)),
+      labelStyle: TextStyle(
+        color: _focusNode.hasFocus ? theme.colorScheme.primary : Colors.grey.shade600,
+        fontWeight: _focusNode.hasFocus ? FontWeight.bold : FontWeight.normal,
+      ),
       filled: true,
-      fillColor: const Color(0xFFF8FAFC),
+      fillColor: _focusNode.hasFocus ? Colors.white : const Color(0xFFF8FAFC),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+        borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     );
   }
 }

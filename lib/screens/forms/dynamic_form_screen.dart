@@ -36,6 +36,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
   
   final Map<String, List<FormFieldSchema>> _groupedFields = {};
   List<String> _sections = [];
+  int _currentSectionIndex = 0;
 
   @override
   void initState() {
@@ -51,8 +52,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
     }
     _sections = _groupedFields.keys.toList();
     
-    // length = sections + 1 (for images)
-    _tabController = TabController(length: _sections.length + 1, vsync: this);
+    // 2 main tabs: Form and Images
+    _tabController = TabController(length: 2, vsync: this);
     
     _loadSavedData();
   }
@@ -86,7 +87,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
       final syncService = Provider.of<SyncService>(context, listen: false);
       syncService.saveSurvey(widget.jobId, widget.bankName, _formData);
       
-      // Artificial delay for premium feel
       await Future.delayed(const Duration(milliseconds: 1000));
       
       if (!mounted) return;
@@ -108,19 +108,85 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
     super.dispose();
   }
 
+  Widget _buildSectionPills(ThemeData theme) {
+    return Container(
+      height: 64,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        itemCount: _sections.length,
+        itemBuilder: (context, index) {
+          final isSelected = _currentSectionIndex == index;
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _currentSectionIndex = index;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              decoration: BoxDecoration(
+                gradient: isSelected
+                    ? LinearGradient(
+                        colors: [theme.primaryColor, theme.primaryColor.withValues(alpha: 0.8)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null,
+                color: isSelected ? null : Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: theme.primaryColor.withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ]
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        )
+                      ],
+                border: isSelected ? null : Border.all(color: Colors.grey.shade200),
+              ),
+              child: Center(
+                child: Text(
+                  _sections[index],
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.grey.shade600,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = BankTheme.getTheme(widget.bankName);
+    final bankTheme = BankTheme.getTheme(widget.bankName);
+    final theme = ThemeData(
+      colorScheme: ColorScheme.fromSeed(seedColor: bankTheme.primaryColor),
+      primaryColor: bankTheme.primaryColor,
+      appBarTheme: AppBarTheme(
+        backgroundColor: bankTheme.primaryColor,
+        foregroundColor: Colors.white,
+      ),
+    );
 
     return Theme(
-      data: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: theme.primaryColor),
-        primaryColor: theme.primaryColor,
-        appBarTheme: AppBarTheme(
-          backgroundColor: theme.primaryColor,
-          foregroundColor: Colors.white,
-        ),
-      ),
+      data: theme,
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
         appBar: AppBar(
@@ -141,63 +207,89 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
           elevation: 0,
           bottom: TabBar(
             controller: _tabController,
-            isScrollable: true,
-            indicatorColor: theme.secondaryColor,
+            indicatorColor: bankTheme.secondaryColor,
             indicatorWeight: 4,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,
             labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            tabs: [
-              ..._sections.map((section) => Tab(text: section)),
-              const Tab(text: 'Images', icon: Icon(Icons.camera_alt_rounded, size: 20)),
+            tabs: const [
+              Tab(text: 'Vehicle Information', icon: Icon(Icons.assignment_rounded, size: 20)),
+              Tab(text: 'Images', icon: Icon(Icons.camera_alt_rounded, size: 20)),
             ],
           ),
         ),
-        body: Form(
-          key: _formKey,
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              ..._sections.map((sectionName) {
-                List<FormFieldSchema> fields = _groupedFields[sectionName]!;
-                return ListView(
-                  padding: const EdgeInsets.all(24.0),
-                  children: [
-                    GlassCard(
-                      borderRadius: 32.0,
-                      padding: const EdgeInsets.all(32.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            // FORM TAB
+            Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  _buildSectionPills(theme),
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 400),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (Widget child, Animation<double> animation) {
+                        return SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0.0, 0.1),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: ListView(
+                        key: ValueKey<int>(_currentSectionIndex),
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
                         children: [
-                          Text(
-                            sectionName,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: theme.primaryColor,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.5,
+                          GlassCard(
+                            borderRadius: 32.0,
+                            padding: const EdgeInsets.all(32.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                  _sections[_currentSectionIndex],
+                                  style: theme.textTheme.headlineSmall?.copyWith(
+                                    color: theme.primaryColor,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 32),
+                                ..._groupedFields[_sections[_currentSectionIndex]]!.map(
+                                  (field) => ModernFormField(
+                                    field: field,
+                                    initialValue: _formData[field.key],
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _formData[field.key] = value;
+                                      });
+                                      _autoSave();
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 32),
-                          ...fields.map((field) => ModernFormField(
-                            field: field,
-                            initialValue: _formData[field.key],
-                            onChanged: (value) {
-                              setState(() {
-                                _formData[field.key] = value;
-                              });
-                              _autoSave();
-                            },
-                          )),
+                          const SizedBox(height: 100), // padding for FAB
                         ],
                       ),
                     ),
-                    const SizedBox(height: 100), // padding for FAB
-                  ],
-                );
-              }),
-              ImagePickerTab(jobId: widget.jobId),
-            ],
-          ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // IMAGES TAB
+            ImagePickerTab(jobId: widget.jobId),
+          ],
         ),
         floatingActionButton: _isSaving 
           ? FloatingActionButton(
