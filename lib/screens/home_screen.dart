@@ -65,7 +65,7 @@ class HomeScreen extends StatelessWidget {
     return GlassCard(
       margin: const EdgeInsets.only(bottom: 16),
       padding: EdgeInsets.zero,
-      borderRadius: 24.0,
+      borderRadius: 16.0,
       onTap: () {
         Navigator.push(
           context,
@@ -77,8 +77,16 @@ class HomeScreen extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24.0),
-          border: Border(left: BorderSide(color: theme.primaryColor, width: 6)),
+          borderRadius: BorderRadius.circular(16.0),
+          border: Border(left: BorderSide(color: theme.primaryColor, width: 4)),
+          gradient: LinearGradient(
+            colors: [
+              theme.primaryColor.withValues(alpha: 0.05),
+              Colors.transparent,
+            ],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
         ),
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(
@@ -91,7 +99,9 @@ class HomeScreen extends StatelessWidget {
           ),
           title: Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: -0.5),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

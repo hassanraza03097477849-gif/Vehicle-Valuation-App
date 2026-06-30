@@ -297,11 +297,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
                                   children: [
                                     Text(
                                       stepText,
-                                      style: TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
+                                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                         color: theme.primaryColor,
-                                        letterSpacing: -0.5,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                     const SizedBox(height: 24),
