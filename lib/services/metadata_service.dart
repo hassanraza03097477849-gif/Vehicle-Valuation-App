@@ -8,6 +8,10 @@ class MetadataService extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  MetadataService() {
+    fetchAllMetadata();
+  }
+
   Future<void> fetchAllMetadata() async {
     _isLoading = true;
     notifyListeners();
@@ -37,6 +41,8 @@ class MetadataService extends ChangeNotifier {
         for (var item in data) {
           if (item is Map && item.containsKey('text')) {
             options.add(item['text'].toString());
+          } else if (item is Map && item.containsKey('description')) {
+            options.add(item['description'].toString());
           } else if (item is Map && item.containsKey('name')) {
             options.add(item['name'].toString());
           } else {

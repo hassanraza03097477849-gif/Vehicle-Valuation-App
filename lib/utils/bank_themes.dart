@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 
 class BankTheme {
-  final Color primaryColor;
+  final Color primaryColor; // Accent color per bank
   final Color secondaryColor;
+  final Color primaryNeutral; // Charcoal
+  final Color background; // Soft gray
+  final Color surfaceContainer; // Light gray for inputs
 
-  BankTheme({required this.primaryColor, required this.secondaryColor});
+  BankTheme({
+    required this.primaryColor,
+    required this.secondaryColor,
+    this.primaryNeutral = const Color(0xFF0F172A),
+    this.background = const Color(0xFFF8FAFC),
+    this.surfaceContainer = const Color(0xFFF1F5F9),
+  });
 
   static BankTheme getTheme(String bankName) {
     switch (bankName.toUpperCase()) {

@@ -8,6 +8,7 @@ import '../../services/metadata_service.dart';
 import '../../models/form_field_schema.dart';
 import '../../schemas/bank_schemas.dart';
 import '../../utils/bank_themes.dart';
+import '../../widgets/glass_card.dart';
 
 class DynamicFormScreen extends StatefulWidget {
   final String jobId;
@@ -99,7 +100,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
   }
 
   Widget _buildField(FormFieldSchema field) {
-    final metadata = Provider.of<MetadataService>(context, listen: false);
+    final metadata = context.watch<MetadataService>();
     switch (field.type) {
       case 'text':
         return Padding(
@@ -288,17 +289,26 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
                           return ListView(
                             padding: const EdgeInsets.all(16.0),
                             children: [
-                              Text(
-                                stepText,
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.primaryColor,
+                              GlassCard(
+                                borderRadius: 24.0,
+                                padding: const EdgeInsets.all(24.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    Text(
+                                      stepText,
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.primaryColor,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    ...fields.map((field) => _buildField(field)),
+                                  ],
                                 ),
                               ),
-                              const Divider(thickness: 2),
-                              const SizedBox(height: 16),
-                              ...fields.map((field) => _buildField(field)),
                             ],
                           );
                         },
@@ -468,15 +478,24 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
                     itemCount: _queuedImages.length,
                     itemBuilder: (context, index) {
                       final item = _queuedImages[index];
-                      return Card(
+                      return GlassCard(
+                        margin: const EdgeInsets.only(bottom: 8.0),
+                        padding: EdgeInsets.zero,
+                        borderRadius: 16.0,
                         child: ListTile(
-                          leading: Image.file(
-                            File(item['imagePath']),
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Image.file(
+                              File(item['imagePath']),
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                          title: Text(item['imageType']),
+                          title: Text(
+                            item['imageType'],
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           subtitle: Text(
                             'Status: ${item['synced'] == true ? "Synced" : "Pending Sync"}',
                           ),

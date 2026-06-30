@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/connectivity_service.dart';
 import '../services/sync_service.dart';
 import '../utils/bank_themes.dart';
+import '../widgets/glass_card.dart';
 import 'forms/dynamic_form_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -61,13 +62,22 @@ class HomeScreen extends StatelessWidget {
     String jobId,
   ) {
     final theme = BankTheme.getTheme(bankName);
-    return Card(
-      elevation: 4,
+    return GlassCard(
       margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      padding: EdgeInsets.zero,
+      borderRadius: 24.0,
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                DynamicFormScreen(jobId: jobId, bankName: bankName),
+          ),
+        );
+      },
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(24.0),
           border: Border(left: BorderSide(color: theme.primaryColor, width: 6)),
         ),
         child: ListTile(
@@ -81,7 +91,7 @@ class HomeScreen extends StatelessWidget {
           ),
           title: Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: -0.5),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,15 +119,6 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
           trailing: Icon(Icons.arrow_forward_ios, color: theme.primaryColor),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    DynamicFormScreen(jobId: jobId, bankName: bankName),
-              ),
-            );
-          },
         ),
       ),
     );
