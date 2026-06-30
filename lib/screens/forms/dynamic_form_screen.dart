@@ -21,7 +21,7 @@ class DynamicFormScreen extends StatefulWidget {
   });
 
   @override
-  _DynamicFormScreenState createState() => _DynamicFormScreenState();
+  State<DynamicFormScreen> createState() => _DynamicFormScreenState();
 }
 
 class _DynamicFormScreenState extends State<DynamicFormScreen>
@@ -193,7 +193,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
               labelText: field.label,
               border: const OutlineInputBorder(),
             ),
-            value: currentValue,
+            initialValue: currentValue,
             items: options.map((option) {
               return DropdownMenuItem(value: option, child: Text(option));
             }).toList(),
@@ -357,7 +357,7 @@ class ImagePickerTab extends StatefulWidget {
   const ImagePickerTab({super.key, required this.jobId});
 
   @override
-  _ImagePickerTabState createState() => _ImagePickerTabState();
+  State<ImagePickerTab> createState() => _ImagePickerTabState();
 }
 
 class _ImagePickerTabState extends State<ImagePickerTab> {
@@ -414,6 +414,8 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
         imageType: _selectedType!,
       );
 
+      if (!mounted) return;
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Image queued for upload!')));
@@ -436,7 +438,7 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
                     labelText: 'Image Type / Reference',
                     border: OutlineInputBorder(),
                   ),
-                  value: _selectedType,
+                  initialValue: _selectedType,
                   items: _imageTypes.map((type) {
                     return DropdownMenuItem<String>(
                       value: type,
