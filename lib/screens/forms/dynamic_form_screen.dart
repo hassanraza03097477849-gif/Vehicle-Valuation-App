@@ -9,6 +9,7 @@ import '../../models/form_field_schema.dart';
 import '../../schemas/bank_schemas.dart';
 import '../../utils/bank_themes.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/modern_form_field.dart';
 
 class DynamicFormScreen extends StatefulWidget {
   final String jobId;
@@ -30,6 +31,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
   final PageController _pageController = PageController();
   late TabController _tabController;
   int _currentPage = 0;
+  bool _isSaving = false;
 
   final Map<String, dynamic> _formData = {};
   late List<FormFieldSchema> _schema;
@@ -65,11 +67,25 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
     syncService.saveSurvey(widget.jobId, widget.bankName, _formData);
   }
 
-  void _saveForm() {
+  Future<void> _saveForm() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+      
+      setState(() {
+        _isSaving = true;
+      });
+      
       final syncService = Provider.of<SyncService>(context, listen: false);
       syncService.saveSurvey(widget.jobId, widget.bankName, _formData);
+      
+      // Artificial delay for premium feel
+      await Future.delayed(const Duration(milliseconds: 800));
+      
+      if (!mounted) return;
+      
+      setState(() {
+        _isSaving = false;
+      });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Survey Saved successfully!')),
@@ -87,7 +103,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
 
   void _nextPage(int totalSections) {
     if (_currentPage < totalSections - 1) {
-      _pageController.jumpToPage(_currentPage + 1);
+      _pageController.animateToPage(
+        _currentPage + 1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     } else {
       _saveForm();
     }
@@ -95,118 +115,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
 
   void _prevPage() {
     if (_currentPage > 0) {
-      _pageController.jumpToPage(_currentPage - 1);
-    }
-  }
-
-  Widget _buildField(FormFieldSchema field) {
-    final metadata = context.watch<MetadataService>();
-    switch (field.type) {
-      case 'text':
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: TextFormField(
-            decoration: InputDecoration(
-              labelText: field.label,
-              border: const OutlineInputBorder(),
-            ),
-            initialValue: _formData[field.key]?.toString(),
-            onChanged: (value) {
-              _formData[field.key] = value;
-              _autoSave();
-            },
-          ),
-        );
-      case 'number':
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: TextFormField(
-            decoration: InputDecoration(
-              labelText: field.label,
-              border: const OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.number,
-            initialValue: _formData[field.key]?.toString(),
-            onChanged: (value) {
-              _formData[field.key] = value;
-              _autoSave();
-            },
-          ),
-        );
-      case 'date':
-      case 'time':
-        // Display a text field with a tap handler to open a picker (simplified text entry for now)
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: TextFormField(
-            decoration: InputDecoration(
-              labelText: '${field.label} (${field.type})',
-              border: const OutlineInputBorder(),
-              suffixIcon: Icon(
-                field.type == 'date' ? Icons.calendar_today : Icons.access_time,
-              ),
-            ),
-            initialValue: _formData[field.key]?.toString(),
-            onChanged: (value) {
-              _formData[field.key] = value;
-              _autoSave();
-            },
-          ),
-        );
-      case 'checkbox':
-        bool isChecked =
-            _formData[field.key] == true ||
-            _formData[field.key] == 'true' ||
-            _formData[field.key] == 1;
-        return CheckboxListTile(
-          title: Text(field.label),
-          value: isChecked,
-          onChanged: (bool? value) {
-            setState(() {
-              _formData[field.key] = value;
-              _autoSave();
-            });
-          },
-        );
-      case 'dropdown':
-        List<String> options = field.options ?? [];
-        if (options.isEmpty) {
-          options = metadata.getCachedOptions(field.key, [
-            'Option 1',
-            'Option 2',
-          ]);
-        }
-
-        String? currentValue = _formData[field.key]?.toString();
-        if (currentValue != null && !options.contains(currentValue)) {
-          // If the cached API hasn't loaded or it's a new free-text value, fall back to null
-          // or we could allow free-text input if needed.
-          if (!options.contains(currentValue)) {
-            options.add(currentValue);
-          }
-        }
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: DropdownButtonFormField<String>(
-            decoration: InputDecoration(
-              labelText: field.label,
-              border: const OutlineInputBorder(),
-            ),
-            initialValue: currentValue,
-            items: options.map((option) {
-              return DropdownMenuItem(value: option, child: Text(option));
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _formData[field.key] = value;
-                _autoSave();
-              });
-            },
-          ),
-        );
-      default:
-        return const SizedBox.shrink();
+      _pageController.animateToPage(
+        _currentPage - 1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     }
   }
 
@@ -238,17 +151,34 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
             style: ElevatedButton.styleFrom(
               backgroundColor: theme.primaryColor,
               foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(vertical: 16),
             ),
           ),
         ),
         child: Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC),
           appBar: AppBar(
-            title: Text('${widget.bankName} - Job ${widget.jobId}'),
+            title: Hero(
+              tag: 'job_title_${widget.jobId}',
+              child: Material(
+                color: Colors.transparent,
+                child: Text(
+                  '${widget.bankName} - Job ${widget.jobId}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            elevation: 0,
             bottom: TabBar(
               controller: _tabController,
               tabs: const [
-                Tab(text: 'Form', icon: Icon(Icons.assignment)),
-                Tab(text: 'Images', icon: Icon(Icons.camera_alt)),
+                Tab(text: 'Form', icon: Icon(Icons.assignment_rounded)),
+                Tab(text: 'Images', icon: Icon(Icons.camera_alt_rounded)),
               ],
               indicatorColor: theme.secondaryColor,
               labelColor: Colors.white,
@@ -263,47 +193,49 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
                 child: Column(
                   children: [
                     LinearProgressIndicator(
-                      value: totalSections == 0
-                          ? 0
-                          : (_currentPage + 1) / totalSections,
-                      backgroundColor: theme.primaryColor.withValues(
-                        alpha: 0.2,
-                      ),
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        theme.primaryColor,
-                      ),
+                      value: totalSections == 0 ? 0 : (_currentPage + 1) / totalSections,
+                      backgroundColor: theme.primaryColor.withValues(alpha: 0.2),
+                      valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
+                      minHeight: 6,
                     ),
                     Expanded(
                       child: PageView.builder(
                         controller: _pageController,
                         physics: const NeverScrollableScrollPhysics(),
-                        onPageChanged: (index) =>
-                            setState(() => _currentPage = index),
+                        onPageChanged: (index) => setState(() => _currentPage = index),
                         itemCount: totalSections,
                         itemBuilder: (context, index) {
                           String sectionName = sections[index];
-                          List<FormFieldSchema> fields =
-                              groupedFields[sectionName]!;
-                          String stepText =
-                              'Step ${index + 1} of $totalSections: $sectionName';
+                          List<FormFieldSchema> fields = groupedFields[sectionName]!;
+                          String stepText = 'Step ${index + 1} of $totalSections: $sectionName';
                           return ListView(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.all(24.0),
                             children: [
                               GlassCard(
-                                borderRadius: 24.0,
-                                padding: const EdgeInsets.all(24.0),
+                                borderRadius: 32.0,
+                                padding: const EdgeInsets.all(32.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
                                     Text(
                                       stepText,
-                                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                         color: theme.primaryColor,
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.5,
                                       ),
                                     ),
-                                    const SizedBox(height: 24),
-                                    ...fields.map((field) => _buildField(field)),
+                                    const SizedBox(height: 32),
+                                    ...fields.map((field) => ModernFormField(
+                                      field: field,
+                                      initialValue: _formData[field.key],
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _formData[field.key] = value;
+                                        });
+                                        _autoSave();
+                                      },
+                                    )),
                                   ],
                                 ),
                               ),
@@ -313,25 +245,43 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
                       ),
                     ),
                     SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(24.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -4)),
+                          ],
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey.shade400,
-                                foregroundColor: Colors.black87,
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey.shade200,
+                                  foregroundColor: Colors.grey.shade800,
+                                  elevation: 0,
+                                ),
+                                onPressed: _currentPage == 0 || _isSaving ? null : _prevPage,
+                                child: const Text('Back', style: TextStyle(fontWeight: FontWeight.bold)),
                               ),
-                              onPressed: _currentPage == 0 ? null : _prevPage,
-                              child: const Text('Back'),
                             ),
-                            ElevatedButton(
-                              onPressed: () => _nextPage(totalSections),
-                              child: Text(
-                                _currentPage == totalSections - 1
-                                    ? 'Finish'
-                                    : 'Next',
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 2,
+                              child: ElevatedButton(
+                                onPressed: _isSaving ? null : () => _nextPage(totalSections),
+                                child: _isSaving
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                      )
+                                    : Text(
+                                        _currentPage == totalSections - 1 ? 'Save & Finish' : 'Next Step',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                      ),
                               ),
                             ),
                           ],
@@ -373,16 +323,12 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
   void _loadQueuedImages() {
     final metadata = Provider.of<MetadataService>(context, listen: false);
     _imageTypes = metadata.getCachedOptions('image_types', [
-      'Front Side',
-      'Back Side',
-      'Right Side',
-      'Left Side',
-      'Engine',
-      'Chassis Number',
-      'Dashboard',
-      'Interior',
-      'Other',
+      'Front Side', 'Back Side', 'Right Side', 'Left Side',
+      'Engine', 'Chassis Number', 'Dashboard', 'Interior', 'Other',
     ]);
+    if (_imageTypes.isNotEmpty && _selectedType == null) {
+      _selectedType = _imageTypes.first;
+    }
 
     final box = Hive.box('imageQueue');
     final images = box.values
@@ -424,88 +370,106 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
+    return ListView(
+      padding: const EdgeInsets.all(24.0),
+      children: [
+        GlassCard(
+          borderRadius: 24,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(
-                    labelText: 'Image Type / Reference',
-                    border: OutlineInputBorder(),
-                  ),
-                  initialValue: _selectedType,
-                  items: _imageTypes.map((type) {
-                    return DropdownMenuItem<String>(
-                      value: type,
-                      child: Text(type),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _selectedType = val;
-                    });
-                  },
-                ),
+              Text(
+                'Capture Evidence',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(height: 20),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Image Type',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                initialValue: _selectedType,
+                items: _imageTypes.map((type) {
+                  return DropdownMenuItem<String>(value: type, child: Text(type));
+                }).toList(),
+                onChanged: (val) {
+                  setState(() {
+                    _selectedType = val;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: _pickImage,
-                icon: const Icon(Icons.camera_alt),
-                label: const Text('Capture'),
+                icon: const Icon(Icons.camera_alt_rounded),
+                label: const Text('Open Camera', style: TextStyle(fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 20,
-                    horizontal: 16,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          const Divider(),
-          const Text(
-            'Queued Images for this Job',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: _queuedImages.isEmpty
-                ? const Center(child: Text('No images queued yet.'))
-                : ListView.builder(
-                    itemCount: _queuedImages.length,
-                    itemBuilder: (context, index) {
-                      final item = _queuedImages[index];
-                      return GlassCard(
-                        margin: const EdgeInsets.only(bottom: 8.0),
-                        padding: EdgeInsets.zero,
-                        borderRadius: 16.0,
-                        child: ListTile(
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: Image.file(
-                              File(item['imagePath']),
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          title: Text(
-                            item['imageType'],
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Text(
-                            'Status: ${item['synced'] == true ? "Synced" : "Pending Sync"}',
-                          ),
+        ),
+        const SizedBox(height: 32),
+        const Text(
+          'Queued Images',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+        ),
+        const SizedBox(height: 16),
+        _queuedImages.isEmpty
+            ? const Center(child: Padding(
+                padding: EdgeInsets.all(32.0),
+                child: Text('No images queued yet.', style: TextStyle(color: Colors.grey)),
+              ))
+            : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _queuedImages.length,
+                itemBuilder: (context, index) {
+                  final item = _queuedImages[index];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))
+                      ]
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(12),
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.file(
+                          File(item['imagePath']),
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
                         ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
+                      ),
+                      title: Text(
+                        item['imageType'],
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Row(
+                        children: [
+                          Icon(
+                            item['synced'] == true ? Icons.cloud_done : Icons.cloud_upload,
+                            size: 14,
+                            color: item['synced'] == true ? Colors.green : Colors.orange,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(item['synced'] == true ? "Synced" : "Pending Sync"),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ],
     );
   }
 }

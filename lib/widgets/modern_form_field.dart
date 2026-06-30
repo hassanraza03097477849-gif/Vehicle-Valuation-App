@@ -1,0 +1,119 @@
+import 'package:flutter/material.dart';
+import '../models/form_field_schema.dart';
+import '../services/metadata_service.dart';
+import 'package:provider/provider.dart';
+
+class ModernFormField extends StatefulWidget {
+  final FormFieldSchema field;
+  final dynamic initialValue;
+  final Function(dynamic) onChanged;
+
+  const ModernFormField({
+    super.key,
+    required this.field,
+    required this.initialValue,
+    required this.onChanged,
+  });
+
+  @override
+  State<ModernFormField> createState() => _ModernFormFieldState();
+}
+
+class _ModernFormFieldState extends State<ModernFormField> {
+  @override
+  Widget build(BuildContext context) {
+    final metadata = context.watch<MetadataService>();
+    final theme = Theme.of(context);
+    
+    Widget content;
+    
+    switch (widget.field.type) {
+      case 'text':
+      case 'number':
+        content = TextFormField(
+          decoration: _buildDecoration(),
+          keyboardType: widget.field.type == 'number' ? TextInputType.number : TextInputType.text,
+          initialValue: widget.initialValue?.toString(),
+          onChanged: widget.onChanged,
+        );
+        break;
+      case 'date':
+      case 'time':
+        content = TextFormField(
+          decoration: _buildDecoration().copyWith(
+            suffixIcon: Icon(
+              widget.field.type == 'date' ? Icons.calendar_today_rounded : Icons.access_time_rounded,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          initialValue: widget.initialValue?.toString(),
+          onChanged: widget.onChanged,
+        );
+        break;
+      case 'checkbox':
+        bool isChecked = widget.initialValue == true || widget.initialValue == 'true' || widget.initialValue == 1;
+        content = Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: CheckboxListTile(
+            title: Text(widget.field.label, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF191B23))),
+            value: isChecked,
+            activeColor: theme.colorScheme.primary,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            onChanged: (bool? value) => widget.onChanged(value),
+          ),
+        );
+        break;
+      case 'dropdown':
+        List<String> options = widget.field.options ?? [];
+        if (options.isEmpty) {
+          options = metadata.getCachedOptions(widget.field.key, ['Option 1', 'Option 2']);
+        }
+        String? currentValue = widget.initialValue?.toString();
+        if (currentValue != null && !options.contains(currentValue)) {
+          options.add(currentValue);
+        }
+        
+        content = DropdownButtonFormField<String>(
+          decoration: _buildDecoration(),
+          initialValue: currentValue,
+          icon: Icon(Icons.expand_more_rounded, color: theme.colorScheme.primary),
+          items: options.map((option) => DropdownMenuItem(value: option, child: Text(option))).toList(),
+          onChanged: (value) => widget.onChanged(value),
+        );
+        break;
+      default:
+        content = const SizedBox.shrink();
+    }
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24.0),
+      child: content,
+    );
+  }
+  
+  InputDecoration _buildDecoration() {
+    return InputDecoration(
+      labelText: widget.field.label,
+      labelStyle: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF727786)),
+      filled: true,
+      fillColor: const Color(0xFFF8FAFC),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+    );
+  }
+}

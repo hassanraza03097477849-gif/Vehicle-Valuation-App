@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 class GlassCard extends StatelessWidget {
   final Widget child;
   final double borderRadius;
-  final EdgeInsetsGeometry padding;
-  final EdgeInsetsGeometry margin;
-  final double width;
-  final double height;
+  final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry? margin;
+  final Border? border;
+  final Gradient? gradient;
   final VoidCallback? onTap;
 
   const GlassCard({
@@ -15,47 +15,46 @@ class GlassCard extends StatelessWidget {
     required this.child,
     this.borderRadius = 24.0,
     this.padding = const EdgeInsets.all(16.0),
-    this.margin = EdgeInsets.zero,
-    this.width = double.infinity,
-    this.height = double.infinity,
+    this.margin,
+    this.border,
+    this.gradient,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     Widget card = Container(
-      width: width == double.infinity ? null : width,
-      height: height == double.infinity ? null : height,
       margin: margin,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000000).withValues(alpha: 0.05),
-            offset: const Offset(0, 4),
-            blurRadius: 6,
-            spreadRadius: -1,
+            color: Colors.black.withValues(alpha: 0.04),
+            offset: const Offset(0, 12),
+            blurRadius: 32,
+            spreadRadius: -4,
           ),
           BoxShadow(
-            color: const Color(0xFF000000).withValues(alpha: 0.10),
-            offset: const Offset(0, 10),
-            blurRadius: 15,
-            spreadRadius: -3,
+            color: Colors.black.withValues(alpha: 0.02),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+            spreadRadius: -2,
           ),
         ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+          filter: ImageFilter.blur(sigmaX: 24.0, sigmaY: 24.0),
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.8),
+              color: gradient == null ? Colors.white.withValues(alpha: 0.75) : null,
+              gradient: gradient,
               borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.5),
-                width: 1.0,
+              border: border ?? Border.all(
+                color: Colors.white.withValues(alpha: 0.9),
+                width: 1.5,
               ),
             ),
             child: child,
@@ -65,9 +64,13 @@ class GlassCard extends StatelessWidget {
     );
 
     if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: card,
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(borderRadius),
+          onTap: onTap,
+          child: card,
+        ),
       );
     }
 
