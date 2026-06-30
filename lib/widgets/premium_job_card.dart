@@ -61,33 +61,33 @@ class PremiumJobCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        color: theme.primaryColor.withValues(alpha: 0.15),
+                        color: theme.primaryColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         bankName,
                         style: TextStyle(
                           color: theme.primaryColor,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12,
-                          letterSpacing: 1.0,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                          letterSpacing: 1.2,
                         ),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         'ID: $jobId',
-                        style: TextStyle(
-                          color: Colors.grey.shade700,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -101,8 +101,8 @@ class PremiumJobCard extends StatelessWidget {
                     child: Text(
                       title,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF191B23),
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
                             letterSpacing: -0.5,
                           ),
                     ),
@@ -114,14 +114,14 @@ class PremiumJobCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.location_on_rounded, size: 18, color: Colors.grey.shade500),
-                        const SizedBox(width: 6),
-                        Text(
+                        Icon(Icons.location_on_rounded, size: 20, color: Colors.grey.shade700),
+                        const SizedBox(width: 8),
+                        const Text(
                           'Pending Inspection',
                           style: TextStyle(
-                            color: Colors.grey.shade600, 
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                            color: Colors.black87, 
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],

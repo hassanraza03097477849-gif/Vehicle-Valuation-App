@@ -160,9 +160,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
                 child: Text(
                   _sections[index],
                   style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.grey.shade600,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                    fontSize: 14,
+                    color: isSelected ? Colors.white : Colors.black87,
+                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                    fontSize: 16,
                   ),
                 ),
               ),
@@ -211,10 +211,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
             indicatorWeight: 4,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,
-            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            labelStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
             tabs: const [
-              Tab(text: 'Vehicle Information', icon: Icon(Icons.assignment_rounded, size: 20)),
-              Tab(text: 'Images', icon: Icon(Icons.camera_alt_rounded, size: 20)),
+              Tab(text: 'Vehicle Information', icon: Icon(Icons.assignment_rounded, size: 24)),
+              Tab(text: 'Images', icon: Icon(Icons.camera_alt_rounded, size: 24)),
             ],
           ),
         ),
@@ -424,7 +424,7 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
         const SizedBox(height: 32),
         const Text(
           'Queued Images',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.black87),
         ),
         const SizedBox(height: 16),
         _queuedImages.isEmpty
@@ -474,7 +474,7 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
                             children: [
                               Text(
                                 item['imageType'],
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.black87),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -483,13 +483,13 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
                                 children: [
                                   Icon(
                                     item['synced'] == true ? Icons.cloud_done : Icons.cloud_upload,
-                                    size: 14,
+                                    size: 16,
                                     color: item['synced'] == true ? Colors.green : Colors.orange,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     item['synced'] == true ? "Synced" : "Pending",
-                                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                    style: const TextStyle(fontSize: 13, color: Colors.black54, fontWeight: FontWeight.w600),
                                   ),
                                 ],
                               ),

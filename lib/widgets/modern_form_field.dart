@@ -51,6 +51,7 @@ class _ModernFormFieldState extends State<ModernFormField> {
         content = TextFormField(
           focusNode: _focusNode,
           decoration: _buildDecoration(),
+          style: const TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),
           keyboardType: widget.field.type == 'number' ? TextInputType.number : TextInputType.text,
           initialValue: widget.initialValue?.toString(),
           onChanged: widget.onChanged,
@@ -66,6 +67,7 @@ class _ModernFormFieldState extends State<ModernFormField> {
               color: theme.colorScheme.primary,
             ),
           ),
+          style: const TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),
           initialValue: widget.initialValue?.toString(),
           onChanged: widget.onChanged,
         );
@@ -100,6 +102,7 @@ class _ModernFormFieldState extends State<ModernFormField> {
         content = DropdownButtonFormField<String>(
           focusNode: _focusNode,
           decoration: _buildDecoration(),
+          style: const TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),
           initialValue: currentValue,
           icon: Icon(Icons.expand_more_rounded, color: theme.colorScheme.primary),
           items: options.map((option) => DropdownMenuItem(value: option, child: Text(option))).toList(),
