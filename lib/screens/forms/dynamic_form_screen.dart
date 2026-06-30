@@ -28,24 +28,32 @@ class DynamicFormScreen extends StatefulWidget {
 class _DynamicFormScreenState extends State<DynamicFormScreen>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  final PageController _pageController = PageController();
   late TabController _tabController;
-  int _currentPage = 0;
   bool _isSaving = false;
 
   final Map<String, dynamic> _formData = {};
   late List<FormFieldSchema> _schema;
+  
+  final Map<String, List<FormFieldSchema>> _groupedFields = {};
+  List<String> _sections = [];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _schema =
-        BankSchemas.schemas[widget.bankName] ?? BankSchemas.schemas['OTHERS']!;
+    _schema = BankSchemas.schemas[widget.bankName] ?? BankSchemas.schemas['OTHERS']!;
 
     for (var field in _schema) {
       _formData[field.key] = null;
+      if (!_groupedFields.containsKey(field.section)) {
+        _groupedFields[field.section] = [];
+      }
+      _groupedFields[field.section]!.add(field);
     }
+    _sections = _groupedFields.keys.toList();
+    
+    // length = sections + 1 (for images)
+    _tabController = TabController(length: _sections.length + 1, vsync: this);
+    
     _loadSavedData();
   }
 
@@ -79,7 +87,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
       syncService.saveSurvey(widget.jobId, widget.bankName, _formData);
       
       // Artificial delay for premium feel
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 1000));
       
       if (!mounted) return;
       
@@ -96,205 +104,113 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
 
   @override
   void dispose() {
-    _pageController.dispose();
     _tabController.dispose();
     super.dispose();
   }
 
-  void _nextPage(int totalSections) {
-    if (_currentPage < totalSections - 1) {
-      _pageController.animateToPage(
-        _currentPage + 1,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    } else {
-      _saveForm();
-    }
-  }
-
-  void _prevPage() {
-    if (_currentPage > 0) {
-      _pageController.animateToPage(
-        _currentPage - 1,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final Map<String, List<FormFieldSchema>> groupedFields = {};
-    for (var field in _schema) {
-      if (!groupedFields.containsKey(field.section)) {
-        groupedFields[field.section] = [];
-      }
-      groupedFields[field.section]!.add(field);
-    }
-
-    final sections = groupedFields.keys.toList();
-    final totalSections = sections.length;
     final theme = BankTheme.getTheme(widget.bankName);
 
-    return DefaultTabController(
-      length: 2,
-      child: Theme(
-        data: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: theme.primaryColor),
-          primaryColor: theme.primaryColor,
-          appBarTheme: AppBarTheme(
-            backgroundColor: theme.primaryColor,
-            foregroundColor: Colors.white,
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(vertical: 16),
+    return Theme(
+      data: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: theme.primaryColor),
+        primaryColor: theme.primaryColor,
+        appBarTheme: AppBarTheme(
+          backgroundColor: theme.primaryColor,
+          foregroundColor: Colors.white,
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          title: Hero(
+            tag: 'job_title_${widget.jobId}',
+            child: Material(
+              color: Colors.transparent,
+              child: Text(
+                '${widget.bankName} - Job ${widget.jobId}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
+          ),
+          elevation: 0,
+          bottom: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            indicatorColor: theme.secondaryColor,
+            indicatorWeight: 4,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            tabs: [
+              ..._sections.map((section) => Tab(text: section)),
+              const Tab(text: 'Images', icon: Icon(Icons.camera_alt_rounded, size: 20)),
+            ],
           ),
         ),
-        child: Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
-          appBar: AppBar(
-            title: Hero(
-              tag: 'job_title_${widget.jobId}',
-              child: Material(
-                color: Colors.transparent,
-                child: Text(
-                  '${widget.bankName} - Job ${widget.jobId}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-            elevation: 0,
-            bottom: TabBar(
-              controller: _tabController,
-              tabs: const [
-                Tab(text: 'Form', icon: Icon(Icons.assignment_rounded)),
-                Tab(text: 'Images', icon: Icon(Icons.camera_alt_rounded)),
-              ],
-              indicatorColor: theme.secondaryColor,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-            ),
-          ),
-          body: TabBarView(
+        body: Form(
+          key: _formKey,
+          child: TabBarView(
             controller: _tabController,
             children: [
-              Form(
-                key: _formKey,
-                child: Column(
+              ..._sections.map((sectionName) {
+                List<FormFieldSchema> fields = _groupedFields[sectionName]!;
+                return ListView(
+                  padding: const EdgeInsets.all(24.0),
                   children: [
-                    LinearProgressIndicator(
-                      value: totalSections == 0 ? 0 : (_currentPage + 1) / totalSections,
-                      backgroundColor: theme.primaryColor.withValues(alpha: 0.2),
-                      valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
-                      minHeight: 6,
-                    ),
-                    Expanded(
-                      child: PageView.builder(
-                        controller: _pageController,
-                        physics: const NeverScrollableScrollPhysics(),
-                        onPageChanged: (index) => setState(() => _currentPage = index),
-                        itemCount: totalSections,
-                        itemBuilder: (context, index) {
-                          String sectionName = sections[index];
-                          List<FormFieldSchema> fields = groupedFields[sectionName]!;
-                          String stepText = 'Step ${index + 1} of $totalSections: $sectionName';
-                          return ListView(
-                            padding: const EdgeInsets.all(24.0),
-                            children: [
-                              GlassCard(
-                                borderRadius: 32.0,
-                                padding: const EdgeInsets.all(32.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    Text(
-                                      stepText,
-                                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                        color: theme.primaryColor,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: -0.5,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 32),
-                                    ...fields.map((field) => ModernFormField(
-                                      field: field,
-                                      initialValue: _formData[field.key],
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _formData[field.key] = value;
-                                        });
-                                        _autoSave();
-                                      },
-                                    )),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          );
-                        },
+                    GlassCard(
+                      borderRadius: 32.0,
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            sectionName,
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: theme.primaryColor,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          ...fields.map((field) => ModernFormField(
+                            field: field,
+                            initialValue: _formData[field.key],
+                            onChanged: (value) {
+                              setState(() {
+                                _formData[field.key] = value;
+                              });
+                              _autoSave();
+                            },
+                          )),
+                        ],
                       ),
                     ),
-                    SafeArea(
-                      child: Container(
-                        padding: const EdgeInsets.all(24.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -4)),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey.shade200,
-                                  foregroundColor: Colors.grey.shade800,
-                                  elevation: 0,
-                                ),
-                                onPressed: _currentPage == 0 || _isSaving ? null : _prevPage,
-                                child: const Text('Back', style: TextStyle(fontWeight: FontWeight.bold)),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              flex: 2,
-                              child: ElevatedButton(
-                                onPressed: _isSaving ? null : () => _nextPage(totalSections),
-                                child: _isSaving
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                                      )
-                                    : Text(
-                                        _currentPage == totalSections - 1 ? 'Save & Finish' : 'Next Step',
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                      ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    const SizedBox(height: 100), // padding for FAB
                   ],
-                ),
-              ),
+                );
+              }),
               ImagePickerTab(jobId: widget.jobId),
             ],
           ),
         ),
+        floatingActionButton: _isSaving 
+          ? FloatingActionButton(
+              onPressed: null,
+              backgroundColor: theme.primaryColor,
+              child: const CircularProgressIndicator(color: Colors.white),
+            )
+          : FloatingActionButton.extended(
+              onPressed: _saveForm,
+              backgroundColor: theme.primaryColor,
+              icon: const Icon(Icons.save_rounded, color: Colors.white),
+              label: const Text('Save & Finish', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
       ),
     );
   }
@@ -424,51 +340,76 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
                 padding: EdgeInsets.all(32.0),
                 child: Text('No images queued yet.', style: TextStyle(color: Colors.grey)),
               ))
-            : ListView.builder(
+            : GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.8,
+                ),
                 itemCount: _queuedImages.length,
                 itemBuilder: (context, index) {
                   final item = _queuedImages[index];
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 12.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))
                       ]
                     ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(12),
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: Image.file(
-                          File(item['imagePath']),
-                          width: 60,
-                          height: 60,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      title: Text(
-                        item['imageType'],
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      subtitle: Row(
-                        children: [
-                          Icon(
-                            item['synced'] == true ? Icons.cloud_done : Icons.cloud_upload,
-                            size: 14,
-                            color: item['synced'] == true ? Colors.green : Colors.orange,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                            child: Hero(
+                              tag: 'image_${item['imagePath']}',
+                              child: Image.file(
+                                File(item['imagePath']),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 4),
-                          Text(item['synced'] == true ? "Synced" : "Pending Sync"),
-                        ],
-                      ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item['imageType'],
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    item['synced'] == true ? Icons.cloud_done : Icons.cloud_upload,
+                                    size: 14,
+                                    color: item['synced'] == true ? Colors.green : Colors.orange,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    item['synced'] == true ? "Synced" : "Pending",
+                                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
               ),
+        const SizedBox(height: 100), // padding for FAB
       ],
     );
   }

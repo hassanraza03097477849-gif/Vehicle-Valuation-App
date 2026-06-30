@@ -4,6 +4,7 @@ import '../services/connectivity_service.dart';
 import '../services/sync_service.dart';
 import '../widgets/premium_job_card.dart';
 import 'forms/dynamic_form_screen.dart';
+import 'all_surveys_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -132,7 +133,22 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          transitionDuration: const Duration(milliseconds: 500),
+                          pageBuilder: (context, animation, secondaryAnimation) => const AllSurveysScreen(),
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            var begin = const Offset(1.0, 0.0);
+                            var end = Offset.zero;
+                            var curve = Curves.easeOutCubic;
+                            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                            return SlideTransition(position: animation.drive(tween), child: child);
+                          },
+                        ),
+                      );
+                    },
                     child: const Text('View All'),
                   )
                 ],
