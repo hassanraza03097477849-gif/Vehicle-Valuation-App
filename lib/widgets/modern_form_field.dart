@@ -59,17 +59,62 @@ class _ModernFormFieldState extends State<ModernFormField> {
         break;
       case 'date':
       case 'time':
+        final isDate = widget.field.type == 'date';
         content = TextFormField(
           focusNode: _focusNode,
+          readOnly: true,
+          onTap: () async {
+            if (isDate) {
+              final date = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(2000),
+                lastDate: DateTime(2100),
+                builder: (context, child) {
+                  return Theme(
+                    data: theme.copyWith(
+                      colorScheme: theme.colorScheme.copyWith(
+                        primary: theme.colorScheme.primary,
+                      ),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+              if (date != null) {
+                final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+                widget.onChanged(dateStr);
+              }
+            } else {
+              final time = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.now(),
+                builder: (context, child) {
+                  return Theme(
+                    data: theme.copyWith(
+                      colorScheme: theme.colorScheme.copyWith(
+                        primary: theme.colorScheme.primary,
+                      ),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+              if (time != null) {
+                if (!context.mounted) return;
+                final timeStr = time.format(context);
+                widget.onChanged(timeStr);
+              }
+            }
+          },
           decoration: _buildDecoration().copyWith(
             suffixIcon: Icon(
-              widget.field.type == 'date' ? Icons.calendar_today_rounded : Icons.access_time_rounded,
+              isDate ? Icons.calendar_today_rounded : Icons.access_time_rounded,
               color: theme.colorScheme.primary,
             ),
           ),
           style: const TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),
-          initialValue: widget.initialValue?.toString(),
-          onChanged: widget.onChanged,
+          controller: TextEditingController(text: widget.initialValue?.toString() ?? ''),
         );
         break;
       case 'checkbox':

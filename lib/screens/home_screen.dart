@@ -16,9 +16,9 @@ class HomeScreen extends StatelessWidget {
 
     // Dummy data for visual presentation
     final List<Map<String, String>> dummyJobs = [
-      {'title': 'Toyota Corolla 2021', 'bankName': 'ASKARI', 'jobId': 'AS-9921'},
+      {'title': 'Toyota Corolla 2021', 'bankName': 'ASKBL', 'jobId': 'AS-9921'},
       {'title': 'Honda Civic 2022', 'bankName': 'MCB', 'jobId': 'MC-4412'},
-      {'title': 'Suzuki Swift 2023', 'bankName': 'ALFALAH', 'jobId': 'BA-7739'},
+      {'title': 'Suzuki Swift 2023', 'bankName': 'BAF', 'jobId': 'BA-7739'},
       {'title': 'Kia Sportage 2022', 'bankName': 'FSBL', 'jobId': 'FS-1021'},
       {'title': 'Hyundai Tucson 2021', 'bankName': 'MBL', 'jobId': 'MB-8822'},
     ];

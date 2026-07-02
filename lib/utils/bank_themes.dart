@@ -17,7 +17,7 @@ class BankTheme {
 
   static BankTheme getTheme(String bankName) {
     switch (bankName.toUpperCase()) {
-      case 'ASKARI':
+      case 'ASKBL':
         return BankTheme(
           primaryColor: const Color(0xFF0072BC),
           secondaryColor: const Color(0xFF1E3A8A),
@@ -33,7 +33,7 @@ class BankTheme {
           primaryNeutral: const Color(0xFF0F172A),
           surfaceContainer: const Color(0xFFFFFFFF),
         );
-      case 'ALFALAH':
+      case 'BAF':
         return BankTheme(
           primaryColor: const Color(0xFFD71920),
           secondaryColor: const Color(0xFFB91C1C),
