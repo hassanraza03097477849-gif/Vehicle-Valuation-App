@@ -14,13 +14,15 @@ class HomeScreen extends StatelessWidget {
     final isOnline = context.watch<ConnectivityService>().isOnline;
     final theme = Theme.of(context);
 
-    // Dummy data for visual presentation
     final List<Map<String, String>> dummyJobs = [
       {'title': 'Toyota Corolla 2021', 'bankName': 'ASKBL', 'jobId': 'AS-9921'},
       {'title': 'Honda Civic 2022', 'bankName': 'MCB', 'jobId': 'MC-4412'},
       {'title': 'Suzuki Swift 2023', 'bankName': 'BAF', 'jobId': 'BA-7739'},
       {'title': 'Kia Sportage 2022', 'bankName': 'FSBL', 'jobId': 'FS-1021'},
       {'title': 'Hyundai Tucson 2021', 'bankName': 'MBL', 'jobId': 'MB-8822'},
+      {'title': 'Nissan Sunny 2019', 'bankName': 'MMB', 'jobId': 'MM-1102'},
+      {'title': 'Mitsubishi Lancer 2020', 'bankName': 'SMBL', 'jobId': 'SM-5514'},
+      {'title': 'Daihatsu Mira 2018', 'bankName': 'OTHERS', 'jobId': 'OT-3399'},
     ];
 
     return Scaffold(
