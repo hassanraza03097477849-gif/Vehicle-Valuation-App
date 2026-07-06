@@ -331,8 +331,12 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
   void _loadQueuedImages() {
     final metadata = Provider.of<MetadataService>(context, listen: false);
     _imageTypes = metadata.getCachedOptions('image_types', [
-      'Front Side', 'Back Side', 'Right Side', 'Left Side',
-      'Engine', 'Chassis Number', 'Dashboard', 'Interior', 'Other',
+      'Back Seat View', 'Back Number Plate View', 'Back View', 
+      'Bonnet Inside View', 'Chassis No', 'Engine Number', 
+      'Engine View', 'Front Elevation', 'Front Number Plate View', 
+      'Front Seat View', 'Front View', 'Interior View', 'Key', 
+      'Left Side View', 'Odometer', 'Original Number Plates View', 
+      'Right Side View', 'Tickly', 'Trunk', 'Video'
     ]);
     if (_imageTypes.isNotEmpty && _selectedType == null) {
       _selectedType = _imageTypes.first;
@@ -355,22 +359,26 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
       return;
     }
 
-    final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
-    if (photo != null) {
+    final isVideo = _selectedType == 'Video';
+    final XFile? media = isVideo 
+        ? await _picker.pickVideo(source: ImageSource.camera)
+        : await _picker.pickImage(source: ImageSource.camera);
+        
+    if (media != null) {
       if (!mounted) return;
       final syncService = Provider.of<SyncService>(context, listen: false);
 
       await syncService.queueImage(
         jobId: widget.jobId,
-        imagePath: photo.path,
+        imagePath: media.path,
         imageType: _selectedType!,
       );
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Image queued for upload!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${isVideo ? 'Video' : 'Image'} queued for upload!'))
+      );
 
       _loadQueuedImages();
     }
@@ -411,8 +419,8 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: _pickImage,
-                icon: const Icon(Icons.camera_alt_rounded),
-                label: const Text('Open Camera', style: TextStyle(fontWeight: FontWeight.bold)),
+                icon: Icon(_selectedType == 'Video' ? Icons.videocam_rounded : Icons.camera_alt_rounded),
+                label: Text(_selectedType == 'Video' ? 'Record Video' : 'Open Camera', style: const TextStyle(fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -460,10 +468,17 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
                             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                             child: Hero(
                               tag: 'image_${item['imagePath']}',
-                              child: Image.file(
-                                File(item['imagePath']),
-                                fit: BoxFit.cover,
-                              ),
+                            child: item['imageType'] == 'Video'
+                                ? Container(
+                                    color: Colors.black12,
+                                    child: const Center(
+                                      child: Icon(Icons.play_circle_fill_rounded, size: 64, color: Colors.black54),
+                                    ),
+                                  )
+                                : Image.file(
+                                    File(item['imagePath']),
+                                    fit: BoxFit.cover,
+                                  ),
                             ),
                           ),
                         ),

@@ -60,7 +60,7 @@ class MetadataService extends ChangeNotifier {
   List<String> getCachedOptions(String fieldKey, List<String> fallback) {
     String cacheKey = '';
 
-    // Map specific schema field keys to our cached API data keys
+    // Map specific schema field keys to                                        our cached API data keys
     if (fieldKey == 'car_class' || fieldKey == 'vehicleClass') {
       cacheKey = 'vehicle_classes';
     } else if (fieldKey == 'rim_type') {

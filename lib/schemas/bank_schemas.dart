@@ -1,6 +1,8 @@
 import '../models/form_field_schema.dart';
 
 class BankSchemas {
+  
+
   static final List<FormFieldSchema> askblSchema = [
     FormFieldSchema(
       key: 'inspected_date',
@@ -32,7 +34,7 @@ class BankSchemas {
     ),
     FormFieldSchema(
       key: 'car_make',
-      label: 'Car Make',
+      label: 'Make',
       type: 'text',
       section: 'Vehicle\'s Details',
       options: null,
@@ -46,28 +48,28 @@ class BankSchemas {
     ),
     FormFieldSchema(
       key: 'car_model',
-      label: 'Car Model',
+      label: 'Model',
       type: 'text',
       section: 'Vehicle\'s Details',
       options: null,
     ),
     FormFieldSchema(
       key: 'car_class',
-      label: 'Car Class',
+      label: 'Class',
       type: 'dropdown',
       section: 'Vehicle\'s Details',
       options: null,
     ),
     FormFieldSchema(
       key: 'car_registration',
-      label: 'Car Registration',
+      label: 'Registration No.',
       type: 'text',
       section: 'Vehicle\'s Details',
       options: null,
     ),
     FormFieldSchema(
       key: 'car_registration_date',
-      label: 'Car Registration Date',
+      label: 'Registration Date',
       type: 'date',
       section: 'Vehicle\'s Details',
       options: null,
@@ -126,14 +128,15 @@ class BankSchemas {
       label: 'Air Conditionar Working',
       type: 'dropdown',
       section: 'Vehicle\'s Details',
-      options: null,
+      options: ['Not Working', 'Working'],
     ),
     FormFieldSchema(
       key: 'car_cng_kit',
       label: 'Car Cng Kit',
       type: 'dropdown',
       section: 'Vehicle\'s Details',
-      options: null,
+      options: ['Company Fitted', 'Self Installed', 'N/A'],
+
     ),
     FormFieldSchema(
       key: 'accessories',
@@ -149,26 +152,22 @@ class BankSchemas {
       section: 'Vehicle\'s Details',
       options: null,
     ),
-    FormFieldSchema(
-      key: 'manufactured',
-      label: 'Manufactured',
-      type: 'dropdown',
-      section: 'Vehicle\'s Details',
-      options: ['Locally Manufactured', 'Foreign Assembled'],
-    ),
+   
     FormFieldSchema(
       key: 'car_drive',
       label: 'Car Drive',
       type: 'dropdown',
       section: 'Vehicle\'s Details',
-      options: null,
+      options: ['Right Hand', 'Left Hand'],
+
     ),
     FormFieldSchema(
       key: 'feul_type',
       label: 'Feul Type',
       type: 'dropdown',
       section: 'Vehicle\'s Details',
-      options: null,
+      options: ['Petrol', 'Diesel'],
+      
     ),
     FormFieldSchema(
       key: 'is_hybrid',
@@ -270,7 +269,7 @@ class BankSchemas {
     ),
     FormFieldSchema(
       key: 'major_defects',
-      label: 'Major Defects',
+      label: 'Engine Major Defects',
       type: 'dropdown',
       section: 'Physical (Body) Conditions of Vehicle',
       options: ['Good', 'Average', 'Poor'],
@@ -284,47 +283,49 @@ class BankSchemas {
     ),
     FormFieldSchema(
       key: 'external_body',
-      label: 'External Body',
+      label: 'Body',
       type: 'dropdown',
       section: 'External Conditions of Vehicle',
       options: ['Good', 'Average', 'Poor'],
     ),
     FormFieldSchema(
       key: 'external_bonnet',
-      label: 'External Bonnet',
+      label: 'Bonnet',
       type: 'dropdown',
       section: 'External Conditions of Vehicle',
       options: ['Good', 'Average', 'Poor'],
     ),
     FormFieldSchema(
       key: 'external_doors',
-      label: 'External Doors',
+      label: 'Doors',
       type: 'dropdown',
       section: 'External Conditions of Vehicle',
       options: ['Good', 'Average', 'Poor'],
     ),
+    
+
     FormFieldSchema(
       key: 'internal_dashboard',
-      label: 'Internal Dashboard',
+      label: 'Dashboard',
       type: 'dropdown',
       section: 'Internal Conditions of Vehicle',
       options: ['Good', 'Average', 'Poor'],
     ),
-    FormFieldSchema(
+     FormFieldSchema(
       key: 'internal_roof',
-      label: 'Internal Roof',
+      label: 'Roof',
       type: 'dropdown',
       section: 'Internal Conditions of Vehicle',
       options: ['Good', 'Average', 'Poor'],
     ),
-    FormFieldSchema(
+     FormFieldSchema(
       key: 'internal_seats',
-      label: 'Internal Seats',
+      label: 'Seats',
       type: 'dropdown',
       section: 'Internal Conditions of Vehicle',
       options: ['Good', 'Average', 'Poor'],
     ),
-    FormFieldSchema(
+     FormFieldSchema(
       key: 'overall_condition',
       label: 'Overall Condition',
       type: 'dropdown',
@@ -401,69 +402,7 @@ class BankSchemas {
       section: 'Valuation Details',
       options: null,
     ),
-    FormFieldSchema(
-      key: 'fsv_rate',
-      label: 'Fsv Rate',
-      type: 'number',
-      section: 'Valuation Details',
-      options: null,
-    ),
-    FormFieldSchema(
-      key: 'is_percentage',
-      label: 'Is Percentage',
-      type: 'checkbox',
-      section: 'Valuation Details',
-      options: null,
-    ),
-    FormFieldSchema(
-      key: 'calculated_fsv',
-      label: 'Calculated Fsv',
-      type: 'number',
-      section: 'Valuation Details',
-      options: null,
-    ),
-    FormFieldSchema(
-      key: 'second_val',
-      label: 'Second Val',
-      type: 'checkbox',
-      section: 'Valuation Details',
-      options: null,
-    ),
-    FormFieldSchema(
-      key: 'is_reg_book',
-      label: 'Is Reg Book',
-      type: 'dropdown',
-      section: 'Valuation Details',
-      options: ['With Original Documents / With Duplicate Documents', 'With Original Documents / Without Duplicate Documents', 'With Original Registration Book / Without Original Registration Book', 'With Original Registration Book / With Duplicate Registration Book'],
-    ),
-    FormFieldSchema(
-      key: 'fsv_value_second',
-      label: 'Fsv Value Second',
-      type: 'number',
-      section: 'Valuation Details',
-      options: null,
-    ),
-    FormFieldSchema(
-      key: 'fsv_rate_second',
-      label: 'Fsv Rate Second',
-      type: 'number',
-      section: 'Valuation Details',
-      options: null,
-    ),
-    FormFieldSchema(
-      key: 'fsv_type_second',
-      label: 'Fsv Type Second',
-      type: 'checkbox',
-      section: 'Valuation Details',
-      options: null,
-    ),
-    FormFieldSchema(
-      key: 'fsv_calculated_second',
-      label: 'Fsv Calculated Second',
-      type: 'number',
-      section: 'Valuation Details',
-      options: null,
-    ),
+  
     FormFieldSchema(
       key: 'illustration_dealer',
       label: 'Illustration Dealer',
@@ -545,13 +484,6 @@ class BankSchemas {
       options: null,
     ),
     FormFieldSchema(
-      key: 'representative_cnic',
-      label: 'Representative Cnic',
-      type: 'text',
-      section: 'Vehicle\'s Details',
-      options: null,
-    ),
-    FormFieldSchema(
       key: 'title_of_ownership',
       label: 'Title Of Ownership',
       type: 'text',
@@ -570,11 +502,11 @@ class BankSchemas {
       label: 'Ownership Per',
       type: 'dropdown',
       section: 'Vehicle\'s Details',
-      options: ['Registration Book'],
+      options: ['Registration Book', 'Import Documents', 'Invoice, D/L, S/C'],
     ),
     FormFieldSchema(
       key: 'car_maker',
-      label: 'Car Maker',
+      label: 'Made',
       type: 'text',
       section: 'Vehicle\'s Details',
       options: null,
@@ -590,13 +522,6 @@ class BankSchemas {
       key: 'car_model',
       label: 'Car Model',
       type: 'text',
-      section: 'Vehicle\'s Details',
-      options: null,
-    ),
-    FormFieldSchema(
-      key: 'car_class',
-      label: 'Car Class',
-      type: 'dropdown',
       section: 'Vehicle\'s Details',
       options: null,
     ),
@@ -654,14 +579,14 @@ class BankSchemas {
       label: 'Modal Status',
       type: 'dropdown',
       section: 'Vehicle\'s Details',
-      options: null,
+      options: ['Non-Comercial', 'Commercial'],
     ),
     FormFieldSchema(
       key: 'car_drive',
       label: 'Car Drive',
       type: 'dropdown',
       section: 'Vehicle\'s Details',
-      options: null,
+      options: ['Right Hand', 'Left Hand'],
     ),
     FormFieldSchema(
       key: 'other1',
@@ -4347,4 +4272,6 @@ class BankSchemas {
     'SMBL': smblSchema,
     'OTHERS': othersSchema,
   };
+
+
 }

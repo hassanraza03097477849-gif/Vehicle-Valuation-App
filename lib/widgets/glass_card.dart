@@ -74,6 +74,6 @@ class GlassCard extends StatelessWidget {
       );
     }
 
-    return card;
+    return card; 
   }
 }
