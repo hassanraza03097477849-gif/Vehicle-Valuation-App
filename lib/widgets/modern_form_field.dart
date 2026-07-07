@@ -60,6 +60,26 @@ class _ModernFormFieldState extends State<ModernFormField> {
       case 'date':
       case 'time':
         final isDate = widget.field.type == 'date';
+        String displayValue = widget.initialValue?.toString() ?? '';
+        if (isDate && displayValue.isNotEmpty) {
+          try {
+            final parsed = DateTime.parse(displayValue);
+            displayValue = "${parsed.day.toString().padLeft(2, '0')}-${parsed.month.toString().padLeft(2, '0')}-${parsed.year}";
+          } catch (_) {}
+        } else if (!isDate && displayValue.isNotEmpty) {
+           // For time, if it's HH:mm:ss, parse and convert to hh:mm AM/PM
+           try {
+             if (displayValue.length >= 5) {
+               final parts = displayValue.split(':');
+               int h = int.parse(parts[0]);
+               int m = int.parse(parts[1]);
+               final hourStr = h > 12 ? (h - 12).toString().padLeft(2, '0') : (h == 0 ? '12' : h.toString().padLeft(2, '0'));
+               final period = h >= 12 ? 'PM' : 'AM';
+               displayValue = "$hourStr:${m.toString().padLeft(2, '0')} $period";
+             }
+           } catch (_) {}
+        }
+
         content = TextFormField(
           focusNode: _focusNode,
           readOnly: true,
@@ -117,7 +137,7 @@ class _ModernFormFieldState extends State<ModernFormField> {
             ),
           ),
           style: const TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600),
-          controller: TextEditingController(text: widget.initialValue?.toString() ?? ''),
+          controller: TextEditingController(text: displayValue),
         );
         break;
       case 'checkbox':

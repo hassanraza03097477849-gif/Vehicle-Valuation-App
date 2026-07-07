@@ -157,46 +157,67 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
     super.dispose();
   }
 
-  Widget _buildProgressHeader(ThemeData theme) {
-    final progress = (_currentSectionIndex + 1) / _sections.length;
+  Widget _buildSectionPills(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Step ${_currentSectionIndex + 1} of ${_sections.length}',
-                style: TextStyle(
-                  color: theme.primaryColor,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 14,
-                  letterSpacing: 1.2,
+      height: 64,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        itemCount: _sections.length,
+        itemBuilder: (context, index) {
+          final isSelected = _currentSectionIndex == index;
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _currentSectionIndex = index;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              decoration: BoxDecoration(
+                gradient: isSelected
+                    ? LinearGradient(
+                        colors: [theme.primaryColor, theme.primaryColor.withValues(alpha: 0.8)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null,
+                color: isSelected ? null : Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: theme.primaryColor.withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ]
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        )
+                      ],
+                border: isSelected ? null : Border.all(color: Colors.grey.shade200),
+              ),
+              child: Center(
+                child: Text(
+                  _sections[index],
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black87,
+                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                    fontSize: 16,
+                  ),
                 ),
               ),
-              Text(
-                '${(progress * 100).toInt()}%',
-                style: const TextStyle(
-                  color: Colors.black54,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: Colors.grey.shade200,
-              valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -254,7 +275,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
               key: _formKey,
               child: Column(
                 children: [
-                  _buildProgressHeader(theme),
+                  _buildSectionPills(theme),
                   Expanded(
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 400),

@@ -197,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         context,
                         PageRouteBuilder(
                           transitionDuration: const Duration(milliseconds: 500),
-                          pageBuilder: (context, animation, secondaryAnimation) => const AllSurveysScreen(),
+                          pageBuilder: (context, animation, secondaryAnimation) => AllSurveysScreen(jobs: _jobs),
                           transitionsBuilder: (context, animation, secondaryAnimation, child) {
                             var begin = const Offset(1.0, 0.0);
                             var end = Offset.zero;
@@ -273,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         context,
                         PageRouteBuilder(
                           transitionDuration: const Duration(milliseconds: 500),
-                          pageBuilder: (context, animation, secondaryAnimation) => const AllSurveysScreen(),
+                          pageBuilder: (context, animation, secondaryAnimation) => AllSurveysScreen(jobs: _jobs),
                           transitionsBuilder: (context, animation, secondaryAnimation, child) {
                             var begin = const Offset(1.0, 0.0);
                             var end = Offset.zero;

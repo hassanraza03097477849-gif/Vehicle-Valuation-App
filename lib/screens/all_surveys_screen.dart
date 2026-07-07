@@ -3,7 +3,9 @@ import '../widgets/premium_job_card.dart';
 import 'forms/dynamic_form_screen.dart';
 
 class AllSurveysScreen extends StatefulWidget {
-  const AllSurveysScreen({super.key});
+  final List<Map<String, String>> jobs;
+
+  const AllSurveysScreen({super.key, required this.jobs});
 
   @override
   State<AllSurveysScreen> createState() => _AllSurveysScreenState();
@@ -11,34 +13,22 @@ class AllSurveysScreen extends StatefulWidget {
 
 class _AllSurveysScreenState extends State<AllSurveysScreen> {
   final TextEditingController _searchController = TextEditingController();
-  
-  final List<Map<String, String>> allJobs = [
-    {'title': 'Toyota Corolla 2021', 'bankName': 'ASKARI', 'jobId': 'AS-9921', 'dbId': '150'},
-    {'title': 'Honda Civic 2022', 'bankName': 'MCB', 'jobId': 'MC-4412', 'dbId': '151'},
-    {'title': 'Suzuki Swift 2023', 'bankName': 'ALFALAH', 'jobId': 'BA-7739', 'dbId': '152'},
-    {'title': 'Kia Sportage 2022', 'bankName': 'FSBL', 'jobId': 'FS-1021', 'dbId': '153'},
-    {'title': 'Hyundai Tucson 2021', 'bankName': 'MBL', 'jobId': 'MB-8822', 'dbId': '154'},
-    {'title': 'Toyota Hilux 2023', 'bankName': 'ASKARI', 'jobId': 'AS-9925', 'dbId': '155'},
-    {'title': 'Honda City 2020', 'bankName': 'MCB', 'jobId': 'MC-4455', 'dbId': '156'},
-    {'title': 'MG HS 2022', 'bankName': 'ALFALAH', 'jobId': 'BA-7799', 'dbId': '157'},
-  ];
-
   List<Map<String, String>> filteredJobs = [];
 
   @override
   void initState() {
     super.initState();
-    filteredJobs = allJobs;
+    filteredJobs = widget.jobs;
     _searchController.addListener(_filterJobs);
   }
 
   void _filterJobs() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      filteredJobs = allJobs.where((job) {
-        return job['title']!.toLowerCase().contains(query) ||
-               job['bankName']!.toLowerCase().contains(query) ||
-               job['jobId']!.toLowerCase().contains(query);
+      filteredJobs = widget.jobs.where((job) {
+        return (job['title'] ?? '').toLowerCase().contains(query) ||
+               (job['bankName'] ?? '').toLowerCase().contains(query) ||
+               (job['jobId'] ?? '').toLowerCase().contains(query);
       }).toList();
     });
   }
