@@ -141,19 +141,72 @@ class _ModernFormFieldState extends State<ModernFormField> {
         );
         break;
       case 'checkbox':
-        bool isChecked = widget.initialValue == true || widget.initialValue == 'true' || widget.initialValue == 1;
-        content = Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: CheckboxListTile(
-            title: Text(widget.field.label, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF191B23))),
-            value: isChecked,
-            activeColor: theme.colorScheme.primary,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-            onChanged: (bool? value) => widget.onChanged(value),
+        bool isChecked = widget.initialValue == true || widget.initialValue == 'true' || widget.initialValue == 1 || widget.initialValue == '1';
+        content = InkWell(
+          onTap: () => widget.onChanged(!isChecked),
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              color: isChecked ? theme.colorScheme.primary.withValues(alpha: 0.05) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isChecked ? theme.colorScheme.primary : Colors.grey.shade200,
+                width: isChecked ? 2 : 1,
+              ),
+              boxShadow: isChecked
+                  ? [
+                      BoxShadow(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      )
+                    ]
+                  : [],
+            ),
+            child: Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutBack,
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: isChecked ? theme.colorScheme.primary : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isChecked ? theme.colorScheme.primary : Colors.grey.shade400,
+                      width: 2,
+                    ),
+                    boxShadow: isChecked
+                        ? [
+                            BoxShadow(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            )
+                          ]
+                        : [],
+                  ),
+                  child: isChecked
+                      ? const Icon(Icons.check_rounded, size: 18, color: Colors.white)
+                      : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    widget.field.label,
+                    style: TextStyle(
+                      fontWeight: isChecked ? FontWeight.bold : FontWeight.w600,
+                      color: isChecked ? theme.colorScheme.primary : const Color(0xFF191B23),
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
         break;
@@ -183,7 +236,23 @@ class _ModernFormFieldState extends State<ModernFormField> {
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0),
-      child: content,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: _focusNode.hasFocus && widget.field.type != 'checkbox'
+              ? [
+                  BoxShadow(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  )
+                ]
+              : [],
+        ),
+        child: content,
+      ),
     );
   }
   

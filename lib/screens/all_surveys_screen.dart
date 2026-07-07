@@ -13,12 +13,15 @@ class AllSurveysScreen extends StatefulWidget {
 
 class _AllSurveysScreenState extends State<AllSurveysScreen> {
   final TextEditingController _searchController = TextEditingController();
+  String _selectedBankFilter = 'All';
+  List<String> _bankFilters = ['All'];
   List<Map<String, String>> filteredJobs = [];
 
   @override
   void initState() {
     super.initState();
     filteredJobs = widget.jobs;
+    _bankFilters = ['All', ...widget.jobs.map((j) => j['bankName'] ?? '').where((b) => b.isNotEmpty).toSet().toList()];
     _searchController.addListener(_filterJobs);
   }
 
@@ -26,9 +29,11 @@ class _AllSurveysScreenState extends State<AllSurveysScreen> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       filteredJobs = widget.jobs.where((job) {
-        return (job['title'] ?? '').toLowerCase().contains(query) ||
-               (job['bankName'] ?? '').toLowerCase().contains(query) ||
-               (job['jobId'] ?? '').toLowerCase().contains(query);
+        final matchesSearch = (job['title'] ?? '').toLowerCase().contains(query) ||
+                              (job['bankName'] ?? '').toLowerCase().contains(query) ||
+                              (job['jobId'] ?? '').toLowerCase().contains(query);
+        final matchesBank = _selectedBankFilter == 'All' || job['bankName'] == _selectedBankFilter;
+        return matchesSearch && matchesBank;
       }).toList();
     });
   }
@@ -79,27 +84,89 @@ class _AllSurveysScreenState extends State<AllSurveysScreen> {
             ),
           ),
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
-                  ]
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search by make, model, bank, or ID...',
-                    hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w500),
-                    prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade400),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
+                        ),
+                      ]
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search jobs...',
+                        hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+                        prefixIcon: Icon(Icons.search_rounded, color: Colors.blue.shade700),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                SizedBox(
+                  height: 48,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _bankFilters.length,
+                    itemBuilder: (context, index) {
+                      final filter = _bankFilters[index];
+                      final isSelected = filter == _selectedBankFilter;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOutCubic,
+                          child: FilterChip(
+                            label: Text(
+                              filter,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : Colors.black87,
+                                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                              ),
+                            ),
+                            selected: isSelected,
+                            onSelected: (bool selected) {
+                              setState(() {
+                                _selectedBankFilter = filter;
+                                _filterJobs();
+                              });
+                            },
+                            backgroundColor: Colors.white,
+                            selectedColor: Colors.blue.shade700,
+                            checkmarkColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: isSelected ? Colors.transparent : Colors.grey.shade300,
+                              ),
+                            ),
+                            elevation: isSelected ? 4 : 0,
+                            pressElevation: 0,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
             ),
           ),
           SliverPadding(

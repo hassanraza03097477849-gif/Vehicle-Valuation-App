@@ -34,7 +34,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TabController _tabController;
+  
+  bool _isLoading = false;
   bool _isSaving = false;
+  bool _showSuccessOverlay = false;
 
   final Map<String, dynamic> _formData = {};
   late List<FormFieldSchema> _schema;
@@ -142,11 +145,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
       
       setState(() {
         _isSaving = false;
+        _showSuccessOverlay = true;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Survey Saved successfully!')),
-      );
+      await Future.delayed(const Duration(milliseconds: 1500));
+      if (!mounted) return;
+      
       Navigator.pop(context);
     }
   }
@@ -222,6 +226,45 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
     );
   }
 
+  Widget _buildCurrentSection(ThemeData theme) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+      children: [
+        GlassCard(
+          borderRadius: 32.0,
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                _sections[_currentSectionIndex],
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: theme.primaryColor,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 32),
+              ..._groupedFields[_sections[_currentSectionIndex]]!.map(
+                (field) => ModernFormField(
+                  field: field,
+                  initialValue: _formData[field.key],
+                  onChanged: (value) {
+                    setState(() {
+                      _formData[field.key] = value;
+                    });
+                    _autoSave();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 100), // padding for FAB
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bankTheme = BankTheme.getTheme(widget.bankName);
@@ -267,77 +310,86 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
             ],
           ),
         ),
-        body: TabBarView(
-          controller: _tabController,
+        body: Stack(
           children: [
-            // FORM TAB
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  _buildSectionPills(theme),
-                  Expanded(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 400),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder: (Widget child, Animation<double> animation) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0.0, 0.1),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: child,
+            TabBarView(
+              controller: _tabController,
+              children: [
+                // FORM TAB
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _buildSectionPills(theme),
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          transitionBuilder: (Widget child, Animation<double> animation) {
+                            return ScaleTransition(
+                              scale: Tween<double>(begin: 0.95, end: 1.0).animate(animation),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: Container(
+                            key: ValueKey<int>(_currentSectionIndex),
+                            child: _buildCurrentSection(theme),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // IMAGES TAB
+                ImagePickerTab(jobId: widget.jobId, dbId: widget.dbId),
+              ],
+            ),
+            // Success Overlay
+            if (_showSuccessOverlay)
+              Positioned.fill(
+                child: Container(
+                  color: theme.primaryColor,
+                  child: Center(
+                    child: TweenAnimationBuilder<double>(
+                      duration: const Duration(milliseconds: 600),
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      curve: Curves.elasticOut,
+                      builder: (context, value, child) {
+                        return Transform.scale(
+                          scale: value,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.check_rounded, color: theme.primaryColor, size: 80),
+                              ),
+                              const SizedBox(height: 24),
+                              const Text(
+                                'Survey Saved!',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       },
-                      child: ListView(
-                        key: ValueKey<int>(_currentSectionIndex),
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-                        children: [
-                          GlassCard(
-                            borderRadius: 32.0,
-                            padding: const EdgeInsets.all(32.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Text(
-                                  _sections[_currentSectionIndex],
-                                  style: theme.textTheme.headlineSmall?.copyWith(
-                                    color: theme.primaryColor,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 32),
-                                ..._groupedFields[_sections[_currentSectionIndex]]!.map(
-                                  (field) => ModernFormField(
-                                    field: field,
-                                    initialValue: _formData[field.key],
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _formData[field.key] = value;
-                                      });
-                                      _autoSave();
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 100), // padding for FAB
-                        ],
-                      ),
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-            
-            // IMAGES TAB
-            ImagePickerTab(jobId: widget.jobId, dbId: widget.dbId),
           ],
         ),
         bottomNavigationBar: Container(
