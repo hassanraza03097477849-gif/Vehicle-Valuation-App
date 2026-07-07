@@ -3,8 +3,11 @@ import 'package:hive/hive.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
+
 class MetadataService extends ChangeNotifier {
-  final String baseUrl = 'http://192.168.18.183:8000/api';
+  final String baseUrl = ApiConfig.baseUrl;
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -32,7 +35,22 @@ class MetadataService extends ChangeNotifier {
 
   Future<void> _fetchAndCache(String endpoint, String cacheKey) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl$endpoint'));
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      
+      final headers = <String, String>{
+        'Accept': 'application/json',
+      };
+      
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl$endpoint'),
+        headers: headers,
+      );
+      
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         // Assuming the API returns a list of objects like [{id: 1, text: 'Sedan'}, ...]
@@ -55,6 +73,7 @@ class MetadataService extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error on $endpoint: $e');
     }
+    
   }
 
   List<String> getCachedOptions(String fieldKey, List<String> fallback) {

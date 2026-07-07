@@ -4,8 +4,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'services/connectivity_service.dart';
 import 'services/sync_service.dart';
+import 'services/auth_service.dart';
 import 'services/metadata_service.dart';
 import 'screens/home_screen.dart';
+import 'screens/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +20,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ConnectivityService()),
+        ChangeNotifierProvider(create: (_) => AuthService()),
         ChangeNotifierProvider(create: (_) => SyncService()),
         ChangeNotifierProvider(create: (_) => MetadataService()),
       ],
@@ -73,7 +76,14 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const HomeScreen(),
+      home: Consumer<AuthService>(
+        builder: (context, auth, _) {
+          if (auth.token == null && !auth.isAuthenticated) {
+            return const LoginScreen();
+          }
+          return const HomeScreen();
+        },
+      ),
     );
   }
 }

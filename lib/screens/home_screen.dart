@@ -6,24 +6,81 @@ import '../widgets/premium_job_card.dart';
 import 'forms/dynamic_form_screen.dart';
 import 'all_surveys_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../services/auth_service.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Map<String, String>> _jobs = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchJobs();
+  }
+
+  Future<void> _fetchJobs() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    if (authService.token == null) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse('${authService.baseUrl}/getJobs'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ${authService.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _jobs = data.map((job) => {
+            'title': '${job['make'] ?? ''} ${job['model'] ?? ''} ${job['reg_no'] ?? ''}'.trim().isNotEmpty 
+                ? '${job['make'] ?? ''} ${job['model'] ?? ''} ${job['reg_no'] ?? ''}' 
+                : 'Vehicle Valuation',
+            'bankName': job['bank_name']?.toString() ?? 'OTHERS',
+            'jobId': job['job_id']?.toString() ?? '',
+            'dbId': job['valuation_id']?.toString() ?? '',
+          }).toList();
+          
+          // Let's ensure the bankName matches one of our 8 supported
+          for (var j in _jobs) {
+            String b = j['bankName']!.toUpperCase();
+            if (b.contains('ASKARI') || b == 'ASKBL') j['bankName'] = 'ASKBL';
+            else if (b.contains('MCB')) j['bankName'] = 'MCB';
+            else if (b.contains('BANK AL FALAH') || b.contains('BAF')) j['bankName'] = 'BAF';
+            else if (b.contains('FAYSAL') || b.contains('FSBL')) j['bankName'] = 'FSBL';
+            else if (b.contains('MEEZAN') || b.contains('MBL')) j['bankName'] = 'MBL';
+            else if (b.contains('MOBILINK') || b.contains('MMB')) j['bankName'] = 'MMB';
+            else if (b.contains('SUMMIT') || b.contains('SMBL')) j['bankName'] = 'SMBL';
+            else j['bankName'] = 'OTHERS';
+          }
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch jobs: $e');
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isOnline = context.watch<ConnectivityService>().isOnline;
     final theme = Theme.of(context);
-
-    final List<Map<String, String>> dummyJobs = [
-      {'title': 'Toyota Corolla 2021', 'bankName': 'ASKBL', 'jobId': 'AS-9921'},
-      {'title': 'Honda Civic 2022', 'bankName': 'MCB', 'jobId': 'MC-4412'},
-      {'title': 'Suzuki Swift 2023', 'bankName': 'BAF', 'jobId': 'BA-7739'},
-      {'title': 'Kia Sportage 2022', 'bankName': 'FSBL', 'jobId': 'FS-1021'},
-      {'title': 'Hyundai Tucson 2021', 'bankName': 'MBL', 'jobId': 'MB-8822'},
-      {'title': 'Nissan Sunny 2019', 'bankName': 'MMB', 'jobId': 'MM-1102'},
-      {'title': 'Mitsubishi Lancer 2020', 'bankName': 'SMBL', 'jobId': 'SM-5514'},
-      {'title': 'Daihatsu Mira 2018', 'bankName': 'OTHERS', 'jobId': 'OT-3399'},
-    ];
+    final authService = context.watch<AuthService>();
+    final userName = authService.user?['name'] ?? 'User';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9), // Light modern background
@@ -79,11 +136,11 @@ class HomeScreen extends StatelessWidget {
                           backgroundImage: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuDPVIz0FjJ_t7LDOPKjXRLxXZ7moCFQmxpDlvNNVK9XnGoQ5TavAw5nML5ziTiF-l_WveV1AkMaR4QoOrNTQRmoKKfIraxGdO0KKJTVA2rEedQnRvXuvIERVaegRyPeCJk07JvayO6jcFds4BNiWQVk7hW7foWacOo9FtTh0xT33Iu2_XdIWVmuHoTqnePLjznHuwOnLMtL3CMpBAhLM9pgt_UXPT29IqseduyWeVF4SfDeq3q5XtuRtu6nkFxlFOM4CAcrmCUDdE4'),
                         ),
                         const SizedBox(width: 12),
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Good Morning,', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                            Text('Sarah', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                            const Text('Good Morning,', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                            Text(userName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                           ],
                         ),
                       ],
@@ -157,12 +214,23 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          SliverPadding(
+          if (_isLoading)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_jobs.isEmpty)
+            SliverFillRemaining(
+              child: Center(
+                child: Text('No assigned jobs found.', style: theme.textTheme.titleMedium),
+              ),
+            )
+          else
+            SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  final job = dummyJobs[index];
+                  final job = _jobs[index];
                   return PremiumJobCard(
                     title: job['title']!,
                     bankName: job['bankName']!,
@@ -176,6 +244,7 @@ class HomeScreen extends StatelessWidget {
                           pageBuilder: (context, animation, secondaryAnimation) => DynamicFormScreen(
                             jobId: job['jobId']!,
                             bankName: job['bankName']!,
+                            dbId: job['dbId']!,
                           ),
                           transitionsBuilder: (context, animation, secondaryAnimation, child) {
                             var begin = const Offset(1.0, 0.0);
@@ -189,10 +258,38 @@ class HomeScreen extends StatelessWidget {
                     },
                   );
                 },
-                childCount: dummyJobs.length,
+                childCount: _jobs.length > 5 ? 5 : _jobs.length,
               ),
             ),
           ),
+          if (_jobs.length > 5)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          transitionDuration: const Duration(milliseconds: 500),
+                          pageBuilder: (context, animation, secondaryAnimation) => const AllSurveysScreen(),
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            var begin = const Offset(1.0, 0.0);
+                            var end = Offset.zero;
+                            var curve = Curves.easeOutCubic;
+                            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                            return SlideTransition(position: animation.drive(tween), child: child);
+                          },
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.arrow_forward_rounded),
+                    label: Text('View all ${_jobs.length} jobs', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ),
+            ),
           const SliverToBoxAdapter(child: SizedBox(height: 100)), // Bottom padding
         ],
       ),

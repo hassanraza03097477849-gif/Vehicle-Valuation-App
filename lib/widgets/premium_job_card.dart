@@ -39,26 +39,26 @@ class PremiumJobCard extends StatelessWidget {
         padding: EdgeInsets.zero,
         borderRadius: 24.0,
         onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24.0),
-            border: Border(left: BorderSide(color: theme.primaryColor, width: 6)),
-            gradient: LinearGradient(
-              colors: [
-                theme.primaryColor.withValues(alpha: 0.1),
-                Colors.white.withValues(alpha: 0.0),
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24.0),
+                border: Border(left: BorderSide(color: theme.primaryColor, width: 6)),
+                gradient: LinearGradient(
+                  colors: [
+                    theme.primaryColor.withValues(alpha: 0.1),
+                    Colors.white.withValues(alpha: 0.0),
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -76,77 +76,88 @@ class PremiumJobCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'ID: $jobId',
-                        style: const TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 14,
+                    const SizedBox(height: 16),
+                    Hero(
+                      tag: 'job_title_$jobId',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Text(
+                          title,
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black,
+                                letterSpacing: -0.5,
+                              ),
                         ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Hero(
-                  tag: 'job_title_$jobId',
-                  child: Material(
-                    color: Colors.transparent,
-                    child: Text(
-                      title,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                            letterSpacing: -0.5,
-                          ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                    const SizedBox(height: 20),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(Icons.location_on_rounded, size: 20, color: Colors.grey.shade700),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Pending Inspection',
-                          style: TextStyle(
-                            color: Colors.black87, 
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
+                        Row(
+                          children: [
+                            Icon(Icons.location_on_rounded, size: 20, color: Colors.grey.shade700),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Pending Inspection',
+                              style: TextStyle(
+                                color: Colors.black87, 
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: theme.primaryColor,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.primaryColor.withValues(alpha: 0.4),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              )
+                            ],
                           ),
+                          child: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 18),
                         ),
                       ],
                     ),
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: theme.primaryColor,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: theme.primaryColor.withValues(alpha: 0.4),
-                            blurRadius: 12,
-                            offset: const Offset(0, 6),
-                          )
-                        ],
-                      ),
-                      child: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 18),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: 16,
+              top: -12, // Overlaps the top edge of the card
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade900,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-              ],
+                child: Text(
+                  'ID: $jobId',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

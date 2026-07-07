@@ -13,14 +13,14 @@ class _AllSurveysScreenState extends State<AllSurveysScreen> {
   final TextEditingController _searchController = TextEditingController();
   
   final List<Map<String, String>> allJobs = [
-    {'title': 'Toyota Corolla 2021', 'bankName': 'ASKARI', 'jobId': 'AS-9921'},
-    {'title': 'Honda Civic 2022', 'bankName': 'MCB', 'jobId': 'MC-4412'},
-    {'title': 'Suzuki Swift 2023', 'bankName': 'ALFALAH', 'jobId': 'BA-7739'},
-    {'title': 'Kia Sportage 2022', 'bankName': 'FSBL', 'jobId': 'FS-1021'},
-    {'title': 'Hyundai Tucson 2021', 'bankName': 'MBL', 'jobId': 'MB-8822'},
-    {'title': 'Toyota Hilux 2023', 'bankName': 'ASKARI', 'jobId': 'AS-9925'},
-    {'title': 'Honda City 2020', 'bankName': 'MCB', 'jobId': 'MC-4455'},
-    {'title': 'MG HS 2022', 'bankName': 'ALFALAH', 'jobId': 'BA-7799'},
+    {'title': 'Toyota Corolla 2021', 'bankName': 'ASKARI', 'jobId': 'AS-9921', 'dbId': '150'},
+    {'title': 'Honda Civic 2022', 'bankName': 'MCB', 'jobId': 'MC-4412', 'dbId': '151'},
+    {'title': 'Suzuki Swift 2023', 'bankName': 'ALFALAH', 'jobId': 'BA-7739', 'dbId': '152'},
+    {'title': 'Kia Sportage 2022', 'bankName': 'FSBL', 'jobId': 'FS-1021', 'dbId': '153'},
+    {'title': 'Hyundai Tucson 2021', 'bankName': 'MBL', 'jobId': 'MB-8822', 'dbId': '154'},
+    {'title': 'Toyota Hilux 2023', 'bankName': 'ASKARI', 'jobId': 'AS-9925', 'dbId': '155'},
+    {'title': 'Honda City 2020', 'bankName': 'MCB', 'jobId': 'MC-4455', 'dbId': '156'},
+    {'title': 'MG HS 2022', 'bankName': 'ALFALAH', 'jobId': 'BA-7799', 'dbId': '157'},
   ];
 
   List<Map<String, String>> filteredJobs = [];
@@ -131,6 +131,7 @@ class _AllSurveysScreenState extends State<AllSurveysScreen> {
                           pageBuilder: (context, animation, secondaryAnimation) => DynamicFormScreen(
                             jobId: job['jobId']!,
                             bankName: job['bankName']!,
+                            dbId: job['dbId']!,
                           ),
                           transitionsBuilder: (context, animation, secondaryAnimation, child) {
                             var begin = const Offset(1.0, 0.0);

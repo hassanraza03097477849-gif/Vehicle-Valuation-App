@@ -82,7 +82,7 @@ class _ModernFormFieldState extends State<ModernFormField> {
                 },
               );
               if (date != null) {
-                final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+                final dateStr = "${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}";
                 widget.onChanged(dateStr);
               }
             } else {
@@ -102,7 +102,10 @@ class _ModernFormFieldState extends State<ModernFormField> {
               );
               if (time != null) {
                 if (!context.mounted) return;
-                final timeStr = time.format(context);
+                final hourStr = time.hour > 12 ? (time.hour - 12).toString().padLeft(2, '0') : (time.hour == 0 ? '12' : time.hour.toString().padLeft(2, '0'));
+                final minStr = time.minute.toString().padLeft(2, '0');
+                final period = time.hour >= 12 ? 'PM' : 'AM';
+                final timeStr = "$hourStr:$minStr $period";
                 widget.onChanged(timeStr);
               }
             }
