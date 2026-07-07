@@ -27,12 +27,30 @@ class SyncService extends ChangeNotifier {
     required String imageType,
   }) async {
     final box = Hive.box('imageQueue');
-    await box.add({
+    
+    // Check if an image of this type already exists for this job
+    dynamic existingKey;
+    for (var key in box.keys) {
+      final item = box.get(key);
+      if (item != null && item['jobId'] == jobId && item['imageType'] == imageType) {
+        existingKey = key;
+        break;
+      }
+    }
+    
+    final payload = {
       'jobId': jobId,
       'imagePath': imagePath,
       'imageType': imageType,
       'synced': false,
-    });
+    };
+    
+    if (existingKey != null) {
+      await box.put(existingKey, payload);
+    } else {
+      await box.add(payload);
+    }
+    
     notifyListeners();
   }
 
