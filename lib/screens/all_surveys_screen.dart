@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/premium_job_card.dart';
 import '../widgets/premium_job_card.dart';
-import '../widgets/high_contrast_background.dart';
 import 'forms/dynamic_form_screen.dart';
 import 'package:provider/provider.dart';
 import '../services/theme_service.dart';
@@ -52,6 +51,7 @@ class _AllSurveysScreenState extends State<AllSurveysScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
@@ -81,8 +81,7 @@ class _AllSurveysScreenState extends State<AllSurveysScreen> {
           child: Container(color: theme.colorScheme.outline.withOpacity(0.2), height: 2),
         ),
       ),
-      body: HighContrastBackground(
-        child: Column(
+      body: Column(
           children: [
             Container(
               color: theme.colorScheme.surface,
@@ -181,7 +180,6 @@ class _AllSurveysScreenState extends State<AllSurveysScreen> {
                   ),
           ),
         ],
-      ),
       ),
     );
   }

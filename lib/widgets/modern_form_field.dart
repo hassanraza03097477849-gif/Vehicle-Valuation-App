@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/form_field_schema.dart';
 import '../services/metadata_service.dart';
 import 'package:provider/provider.dart';
+import '../theme/app_theme.dart';
 
 class ModernFormField extends StatefulWidget {
   final FormFieldSchema field;
@@ -148,10 +149,10 @@ class _ModernFormFieldState extends State<ModernFormField> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isChecked ? theme.colorScheme.primary.withOpacity(0.1) : theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.borderRadius),
               border: Border.all(
                 color: isChecked ? theme.colorScheme.primary : theme.colorScheme.outline,
-                width: isChecked ? 2 : 1.5,
+                width: isChecked ? 2 : 1,
               ),
             ),
             child: Row(
@@ -164,7 +165,7 @@ class _ModernFormFieldState extends State<ModernFormField> {
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
                       color: isChecked ? theme.colorScheme.primary : theme.colorScheme.outline,
-                      width: 1.5,
+                      width: 1,
                     ),
                   ),
                   child: isChecked

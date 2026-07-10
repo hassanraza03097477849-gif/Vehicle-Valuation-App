@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../utils/bank_themes.dart';
+import '../theme/app_theme.dart';
+import '../services/theme_service.dart';
+import 'package:provider/provider.dart';
 
 class PremiumJobCard extends StatelessWidget {
   final String title;
@@ -41,15 +44,11 @@ class PremiumJobCard extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: theme.colorScheme.outline, width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+            border: Border.all(color: theme.colorScheme.outline, width: 1),
+            boxShadow: Provider.of<ThemeService>(context).isDarkMode 
+                ? AppTheme.darkShadow 
+                : AppTheme.lightShadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,8 +58,8 @@ class PremiumJobCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surface,
-                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-                  border: Border(bottom: BorderSide(color: theme.colorScheme.outline.withOpacity(0.5), width: 1.5)),
+                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(AppTheme.borderRadius), topRight: Radius.circular(AppTheme.borderRadius)),
+                  border: Border(bottom: BorderSide(color: theme.colorScheme.outline.withOpacity(0.5), width: 1)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

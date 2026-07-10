@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../services/connectivity_service.dart';
 import '../services/sync_service.dart';
 import '../widgets/premium_job_card.dart';
-import '../widgets/high_contrast_background.dart';
 import 'forms/dynamic_form_screen.dart';
 
 import 'all_surveys_screen.dart';
@@ -91,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
@@ -192,8 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Container(color: theme.colorScheme.outline.withOpacity(0.2), height: 2),
         ),
       ),
-      body: HighContrastBackground(
-        child: CustomScrollView(
+      body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
@@ -305,7 +304,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
         ],
-      ),
       ),
     );
   }

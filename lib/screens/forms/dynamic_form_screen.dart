@@ -11,7 +11,8 @@ import '../../services/metadata_service.dart';
 import '../../models/form_field_schema.dart';
 import '../../schemas/bank_schemas.dart';
 import '../../widgets/modern_form_field.dart';
-import '../../widgets/high_contrast_background.dart';
+import '../../theme/app_theme.dart';
+import '../../services/theme_service.dart';
 class DynamicFormScreen extends StatefulWidget {
   final String jobId;
   final String bankName;
@@ -210,15 +211,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
           padding: const EdgeInsets.all(24.0),
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: theme.colorScheme.outline, width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+            border: Border.all(color: theme.colorScheme.outline, width: 1),
+            boxShadow: Provider.of<ThemeService>(context).isDarkMode 
+                ? AppTheme.darkShadow 
+                : AppTheme.lightShadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -289,8 +286,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
           ],
         ),
       ),
-      body: HighContrastBackground(
-        child: Stack(
+      body: Stack(
         children: [
           TabBarView(
             controller: _tabController,
@@ -357,7 +353,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
               ),
             ),
         ],
-      ),
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16.0),
@@ -540,11 +535,11 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
               return Container(
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: theme.colorScheme.outline, width: 1.5),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))
-                  ]
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                  border: Border.all(color: theme.colorScheme.outline, width: 1),
+                  boxShadow: Provider.of<ThemeService>(context).isDarkMode 
+                      ? AppTheme.darkShadow 
+                      : AppTheme.lightShadow,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
