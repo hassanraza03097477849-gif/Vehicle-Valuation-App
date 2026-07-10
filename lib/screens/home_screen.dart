@@ -52,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
             'dbId': job['valuation_id']?.toString() ?? '',
           }).toList();
           
-          // Let's ensure the bankName matches one of our 8 supported
           for (var j in _jobs) {
             String b = j['bankName']!.toUpperCase();
             if (b.contains('ASKARI') || b == 'ASKBL') j['bankName'] = 'ASKBL';
@@ -75,233 +74,221 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    await authService.logout();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed('/login'); // Assuming login is pushed manually or using auth state
+  }
+
   @override
   Widget build(BuildContext context) {
     final isOnline = context.watch<ConnectivityService>().isOnline;
-    final theme = Theme.of(context);
     final authService = context.watch<AuthService>();
     final userName = authService.user?['name'] ?? 'User';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9), // Light modern background
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 180.0,
-            floating: false,
-            pinned: true,
-            backgroundColor: theme.colorScheme.primary,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: Text(
-                'Valuation Pro',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
+      backgroundColor: const Color(0xFFFCFCFD), // Ultra clean corporate off-white
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.white,
+        title: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFEAECF0)),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/logo.jpg',
+                  width: 36,
+                  height: 36,
+                  fit: BoxFit.cover,
                 ),
               ),
-              background: Stack(
-                fit: StackFit.expand,
+            ),
+            const SizedBox(width: 12),
+            const Flexible(
+              child: Text(
+                'Valuation Pro',
+                style: TextStyle(
+                  color: Color(0xFF101828),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: isOnline ? const Color(0xFFECFDF3) : const Color(0xFFFEF3F2),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isOnline ? const Color(0xFFA6F4C5) : const Color(0xFFFECDCA),
+                ),
+              ),
+              child: Row(
                 children: [
                   Container(
+                    width: 6, height: 6,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [theme.colorScheme.primary, const Color(0xFF003885)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: isOnline ? const Color(0xFF12B76A) : const Color(0xFFF04438),
+                      shape: BoxShape.circle,
                     ),
                   ),
-                  Positioned(
-                    right: -50,
-                    top: -50,
-                    child: Container(
-                      width: 200,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.1),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 20,
-                    top: MediaQuery.of(context).padding.top + 20,
-                    child: Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 20,
-                          backgroundImage: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuDPVIz0FjJ_t7LDOPKjXRLxXZ7moCFQmxpDlvNNVK9XnGoQ5TavAw5nML5ziTiF-l_WveV1AkMaR4QoOrNTQRmoKKfIraxGdO0KKJTVA2rEedQnRvXuvIERVaegRyPeCJk07JvayO6jcFds4BNiWQVk7hW7foWacOo9FtTh0xT33Iu2_XdIWVmuHoTqnePLjznHuwOnLMtL3CMpBAhLM9pgt_UXPT29IqseduyWeVF4SfDeq3q5XtuRtu6nkFxlFOM4CAcrmCUDdE4'),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Good Morning,', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                            Text(userName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                          ],
-                        ),
-                      ],
+                  const SizedBox(width: 6),
+                  Text(
+                    isOnline ? 'Online' : 'Offline',
+                    style: TextStyle(
+                      color: isOnline ? const Color(0xFF027A48) : const Color(0xFFB42318),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
-            actions: [
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.only(right: 16),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF475467)),
+            onPressed: () {
+              setState(() => _isLoading = true);
+              _fetchJobs();
+            },
+            tooltip: 'Refresh Surveys',
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: Color(0xFF475467)),
+            onPressed: _logout,
+            tooltip: 'Logout',
+          ),
+          const SizedBox(width: 8),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: const Color(0xFFEAECF0), height: 1),
+        ),
+      ),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Dashboard',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF101828),
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                  child: Row(
+                  const SizedBox(height: 8),
+                  Text(
+                    'Welcome back, $userName. Here is your overview.',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF475467),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        width: 8, height: 8,
-                        decoration: BoxDecoration(
-                          color: isOnline ? const Color(0xFF4ADE80) : Colors.red,
-                          shape: BoxShape.circle,
+                      const Text(
+                        'Recent Jobs',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF101828),
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        isOnline ? 'Online' : 'Offline',
-                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              transitionDuration: const Duration(milliseconds: 300),
+                              pageBuilder: (context, animation, secondaryAnimation) => AllSurveysScreen(jobs: _jobs),
+                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                return FadeTransition(opacity: animation, child: child);
+                              },
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFF1570EF),
+                          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        child: const Text('View all'),
                       ),
                     ],
                   ),
-                ),
-              ),
-            ],
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Assigned Jobs',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF191B23),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          transitionDuration: const Duration(milliseconds: 500),
-                          pageBuilder: (context, animation, secondaryAnimation) => AllSurveysScreen(jobs: _jobs),
-                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                            var begin = const Offset(1.0, 0.0);
-                            var end = Offset.zero;
-                            var curve = Curves.easeOutCubic;
-                            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                            return SlideTransition(position: animation.drive(tween), child: child);
-                          },
-                        ),
-                      );
-                    },
-                    child: const Text('View All'),
-                  )
                 ],
               ),
             ),
           ),
           if (_isLoading)
             const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(child: CircularProgressIndicator(color: Color(0xFF1570EF))),
             )
           else if (_jobs.isEmpty)
-            SliverFillRemaining(
+            const SliverFillRemaining(
               child: Center(
-                child: Text('No assigned jobs found.', style: theme.textTheme.titleMedium),
+                child: Text(
+                  'No assigned jobs found.',
+                  style: TextStyle(color: Color(0xFF475467), fontSize: 16),
+                ),
               ),
             )
           else
             SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final job = _jobs[index];
-                  return PremiumJobCard(
-                    title: job['title']!,
-                    bankName: job['bankName']!,
-                    jobId: job['jobId']!,
-                    animationDelay: index * 0.1,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          transitionDuration: const Duration(milliseconds: 500),
-                          pageBuilder: (context, animation, secondaryAnimation) => DynamicFormScreen(
-                            jobId: job['jobId']!,
-                            bankName: job['bankName']!,
-                            dbId: job['dbId']!,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final job = _jobs[index];
+                    return PremiumJobCard(
+                      title: job['title']!,
+                      bankName: job['bankName']!,
+                      jobId: job['jobId']!,
+                      animationDelay: index * 0.1, // Staggered animation
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            transitionDuration: const Duration(milliseconds: 300),
+                            pageBuilder: (context, animation, secondaryAnimation) => DynamicFormScreen(
+                              jobId: job['jobId']!,
+                              bankName: job['bankName']!,
+                              dbId: job['dbId']!,
+                            ),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              return FadeTransition(opacity: animation, child: child);
+                            },
                           ),
-                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                            var begin = const Offset(1.0, 0.0);
-                            var end = Offset.zero;
-                            var curve = Curves.easeOutCubic;
-                            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                            return SlideTransition(position: animation.drive(tween), child: child);
-                          },
-                        ),
-                      );
-                    },
-                  );
-                },
-                childCount: _jobs.length > 5 ? 5 : _jobs.length,
-              ),
-            ),
-          ),
-          if (_jobs.length > 5)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Center(
-                  child: TextButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          transitionDuration: const Duration(milliseconds: 500),
-                          pageBuilder: (context, animation, secondaryAnimation) => AllSurveysScreen(jobs: _jobs),
-                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                            var begin = const Offset(1.0, 0.0);
-                            var end = Offset.zero;
-                            var curve = Curves.easeOutCubic;
-                            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                            return SlideTransition(position: animation.drive(tween), child: child);
-                          },
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.arrow_forward_rounded),
-                    label: Text('View all ${_jobs.length} jobs', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ),
+                        );
+                      },
+                    );
+                  },
+                  childCount: _jobs.length > 5 ? 5 : _jobs.length, // Only show top 5 on dashboard
                 ),
               ),
             ),
-          const SliverToBoxAdapter(child: SizedBox(height: 100)), // Bottom padding
+          const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.read<SyncService>().syncPendingSurveys();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Syncing pending surveys...')),
-          );
-        },
-        icon: const Icon(Icons.sync_rounded),
-        label: const Text('Sync Now', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
     );
   }

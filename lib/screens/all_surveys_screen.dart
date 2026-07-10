@@ -46,167 +46,138 @@ class _AllSurveysScreenState extends State<AllSurveysScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 140.0,
-            floating: true,
-            pinned: true,
-            backgroundColor: theme.colorScheme.primary,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 48, bottom: 16),
-              title: Text(
-                'All Surveys',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [theme.colorScheme.primary, const Color(0xFF003885)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-              ),
-            ),
+      backgroundColor: const Color(0xFFFCFCFD),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.white,
+        iconTheme: const IconThemeData(color: Color(0xFF101828)),
+        title: const Text(
+          'All Surveys',
+          style: TextStyle(
+            color: Color(0xFF101828),
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
           ),
-          SliverToBoxAdapter(
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: const Color(0xFFEAECF0), height: 1),
+        ),
+      ),
+      body: Column(
+        children: [
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 16,
-                          offset: const Offset(0, 8),
-                        ),
-                      ]
+                TextField(
+                  controller: _searchController,
+                  style: const TextStyle(fontSize: 14, color: Color(0xFF101828)),
+                  decoration: InputDecoration(
+                    hintText: 'Search jobs, banks, or IDs...',
+                    hintStyle: const TextStyle(color: Color(0xFF98A2B3)),
+                    prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF667085), size: 20),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
                     ),
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search jobs...',
-                        hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w500),
-                        prefixIcon: Icon(Icons.search_rounded, color: Colors.blue.shade700),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF1570EF), width: 2),
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
                 SizedBox(
-                  height: 48,
+                  height: 36,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: _bankFilters.length,
                     itemBuilder: (context, index) {
                       final filter = _bankFilters[index];
                       final isSelected = filter == _selectedBankFilter;
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeOutCubic,
-                          child: FilterChip(
-                            label: Text(
-                              filter,
-                              style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.black87,
-                                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                              ),
-                            ),
-                            selected: isSelected,
-                            onSelected: (bool selected) {
-                              setState(() {
-                                _selectedBankFilter = filter;
-                                _filterJobs();
-                              });
-                            },
-                            backgroundColor: Colors.white,
-                            selectedColor: Colors.blue.shade700,
-                            checkmarkColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              side: BorderSide(
-                                color: isSelected ? Colors.transparent : Colors.grey.shade300,
-                              ),
-                            ),
-                            elevation: isSelected ? 4 : 0,
-                            pressElevation: 0,
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(filter),
+                          selected: isSelected,
+                          onSelected: (bool selected) {
+                            setState(() {
+                              _selectedBankFilter = filter;
+                              _filterJobs();
+                            });
+                          },
+                          backgroundColor: Colors.white,
+                          selectedColor: const Color(0xFFEFF8FF),
+                          labelStyle: TextStyle(
+                            color: isSelected ? const Color(0xFF175CD3) : const Color(0xFF344054),
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                            fontSize: 14,
                           ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                              color: isSelected ? const Color(0xFFB2DDFF) : const Color(0xFFD0D5DD),
+                            ),
+                          ),
+                          showCheckmark: false,
                         ),
                       );
                     },
                   ),
                 ),
-                const SizedBox(height: 12),
               ],
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final job = filteredJobs[index];
-                  return PremiumJobCard(
-                    title: job['title']!,
-                    bankName: job['bankName']!,
-                    jobId: job['jobId']!,
-                    animationDelay: (index % 10) * 0.05,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          transitionDuration: const Duration(milliseconds: 500),
-                          pageBuilder: (context, animation, secondaryAnimation) => DynamicFormScreen(
-                            jobId: job['jobId']!,
-                            bankName: job['bankName']!,
-                            dbId: job['dbId']!,
-                          ),
-                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                            var begin = const Offset(1.0, 0.0);
-                            var end = Offset.zero;
-                            var curve = Curves.easeOutCubic;
-                            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                            return SlideTransition(position: animation.drive(tween), child: child);
-                          },
-                        ),
+          Container(height: 1, color: const Color(0xFFEAECF0)),
+          Expanded(
+            child: filteredJobs.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No jobs match your search.',
+                      style: TextStyle(color: Color(0xFF475467), fontSize: 16),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(24),
+                    itemCount: filteredJobs.length,
+                    itemBuilder: (context, index) {
+                      final job = filteredJobs[index];
+                      return PremiumJobCard(
+                        title: job['title']!,
+                        bankName: job['bankName']!,
+                        jobId: job['jobId']!,
+                        animationDelay: 0.0,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              transitionDuration: const Duration(milliseconds: 300),
+                              pageBuilder: (context, animation, secondaryAnimation) => DynamicFormScreen(
+                                jobId: job['jobId']!,
+                                bankName: job['bankName']!,
+                                dbId: job['dbId']!,
+                              ),
+                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                return FadeTransition(opacity: animation, child: child);
+                              },
+                            ),
+                          );
+                        },
                       );
                     },
-                  );
-                },
-                childCount: filteredJobs.length,
-              ),
-            ),
+                  ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
     );

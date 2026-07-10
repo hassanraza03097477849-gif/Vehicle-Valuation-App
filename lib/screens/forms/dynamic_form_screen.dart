@@ -10,8 +10,6 @@ import '../../services/sync_service.dart';
 import '../../services/metadata_service.dart';
 import '../../models/form_field_schema.dart';
 import '../../schemas/bank_schemas.dart';
-import '../../utils/bank_themes.dart';
-import '../../widgets/glass_card.dart';
 import '../../widgets/modern_form_field.dart';
 
 class DynamicFormScreen extends StatefulWidget {
@@ -60,7 +58,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
     }
     _sections = _groupedFields.keys.toList();
     
-    // 2 main tabs: Form and Images
     _tabController = TabController(length: 2, vsync: this);
     
     _loadSavedData();
@@ -70,7 +67,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
     final box = Hive.box('surveyQueue');
     final savedData = box.get(widget.jobId);
     
-    // Prioritize unsynced local changes
     if (savedData != null && savedData['synced'] == false) {
       setState(() {
         final payload = Map<String, dynamic>.from(savedData['payload']);
@@ -81,7 +77,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
       return;
     }
 
-    // Fetch from ERP API
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
       if (authService.token != null) {
@@ -100,7 +95,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
               final item = data is List ? data.first : data;
               for (var key in item.keys) {
                 if (_formData.containsKey(key)) {
-                  _formData[key] = item[key]?.toString(); // Safely cast to string
+                  _formData[key] = item[key]?.toString();
                 }
               }
             });
@@ -112,7 +107,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
       debugPrint('Error fetching ERP data: $e');
     }
 
-    // Fallback to synced local data if API fails or returns empty
     if (savedData != null) {
       setState(() {
         final payload = Map<String, dynamic>.from(savedData['payload']);
@@ -161,13 +155,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
     super.dispose();
   }
 
-  Widget _buildSectionPills(ThemeData theme) {
+  Widget _buildSectionPills() {
     return Container(
-      height: 64,
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      height: 60,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFEAECF0))),
+      ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: _sections.length,
         itemBuilder: (context, index) {
           final isSelected = _currentSectionIndex == index;
@@ -177,46 +174,23 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
                 _currentSectionIndex = index;
               });
             },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                gradient: isSelected
-                    ? LinearGradient(
-                        colors: [theme.primaryColor, theme.primaryColor.withValues(alpha: 0.8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null,
-                color: isSelected ? null : Colors.white,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: theme.primaryColor.withValues(alpha: 0.4),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        )
-                      ]
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        )
-                      ],
-                border: isSelected ? null : Border.all(color: Colors.grey.shade200),
+                color: isSelected ? const Color(0xFFEFF8FF) : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: isSelected ? const Color(0xFFB2DDFF) : Colors.transparent,
+                ),
               ),
-              child: Center(
-                child: Text(
-                  _sections[index],
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black87,
-                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                    fontSize: 16,
-                  ),
+              child: Text(
+                _sections[index],
+                style: TextStyle(
+                  color: isSelected ? const Color(0xFF175CD3) : const Color(0xFF475467),
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  fontSize: 14,
                 ),
               ),
             ),
@@ -226,25 +200,36 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
     );
   }
 
-  Widget _buildCurrentSection(ThemeData theme) {
+  Widget _buildCurrentSection() {
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
       children: [
-        GlassCard(
-          borderRadius: 32.0,
-          padding: const EdgeInsets.all(32.0),
+        Container(
+          padding: const EdgeInsets.all(24.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFEAECF0)),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF101828).withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 _sections[_currentSectionIndex],
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: theme.primaryColor,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF101828),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               ..._groupedFields[_sections[_currentSectionIndex]]!.map(
                 (field) => ModernFormField(
                   field: field,
@@ -260,206 +245,186 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
             ],
           ),
         ),
-        const SizedBox(height: 100), // padding for FAB
+        const SizedBox(height: 100), // padding for bottom bar
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final bankTheme = BankTheme.getTheme(widget.bankName);
-    final theme = ThemeData(
-      colorScheme: ColorScheme.fromSeed(seedColor: bankTheme.primaryColor),
-      primaryColor: bankTheme.primaryColor,
-      appBarTheme: AppBarTheme(
-        backgroundColor: bankTheme.primaryColor,
-        foregroundColor: Colors.white,
-      ),
-    );
-
-    return Theme(
-      data: theme,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          title: Hero(
-            tag: 'job_title_${widget.jobId}',
-            child: Material(
-              color: Colors.transparent,
-              child: Text(
-                '${widget.bankName} - Job ${widget.jobId}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFFCFCFD),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color(0xFF101828)),
+        title: Hero(
+          tag: 'job_title_${widget.jobId}',
+          child: Material(
+            color: Colors.transparent,
+            child: Text(
+              '${widget.bankName} - Job ${widget.jobId}',
+              style: const TextStyle(
+                color: Color(0xFF101828),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          elevation: 0,
-          bottom: TabBar(
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: const Color(0xFF1570EF),
+          indicatorWeight: 3,
+          labelColor: const Color(0xFF1570EF),
+          unselectedLabelColor: const Color(0xFF475467),
+          labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          dividerColor: const Color(0xFFEAECF0),
+          tabs: const [
+            Tab(text: 'Vehicle Information'),
+            Tab(text: 'Images & Media'),
+          ],
+        ),
+      ),
+      body: Stack(
+        children: [
+          TabBarView(
             controller: _tabController,
-            indicatorColor: bankTheme.secondaryColor,
-            indicatorWeight: 4,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            labelStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
-            tabs: const [
-              Tab(text: 'Vehicle Information', icon: Icon(Icons.assignment_rounded, size: 24)),
-              Tab(text: 'Images', icon: Icon(Icons.camera_alt_rounded, size: 24)),
+            children: [
+              // FORM TAB
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    _buildSectionPills(),
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        switchInCurve: Curves.easeIn,
+                        switchOutCurve: Curves.easeOut,
+                        transitionBuilder: (Widget child, Animation<double> animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
+                        child: Container(
+                          key: ValueKey<int>(_currentSectionIndex),
+                          child: _buildCurrentSection(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // IMAGES TAB
+              ImagePickerTab(jobId: widget.jobId, dbId: widget.dbId),
             ],
           ),
-        ),
-        body: Stack(
-          children: [
-            TabBarView(
-              controller: _tabController,
-              children: [
-                // FORM TAB
-                Form(
-                  key: _formKey,
+          // Success Overlay
+          if (_showSuccessOverlay)
+            Positioned.fill(
+              child: Container(
+                color: Colors.white.withValues(alpha: 0.95),
+                child: Center(
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildSectionPills(theme),
-                      Expanded(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          switchInCurve: Curves.easeOutCubic,
-                          switchOutCurve: Curves.easeInCubic,
-                          transitionBuilder: (Widget child, Animation<double> animation) {
-                            return ScaleTransition(
-                              scale: Tween<double>(begin: 0.95, end: 1.0).animate(animation),
-                              child: FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Container(
-                            key: ValueKey<int>(_currentSectionIndex),
-                            child: _buildCurrentSection(theme),
-                          ),
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFECFDF3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.check_circle_rounded, color: Color(0xFF12B76A), size: 64),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Survey Saved Successfully',
+                        style: TextStyle(
+                          color: Color(0xFF101828),
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
                   ),
                 ),
-                
-                // IMAGES TAB
-                ImagePickerTab(jobId: widget.jobId, dbId: widget.dbId),
-              ],
-            ),
-            // Success Overlay
-            if (_showSuccessOverlay)
-              Positioned.fill(
-                child: Container(
-                  color: theme.primaryColor,
-                  child: Center(
-                    child: TweenAnimationBuilder<double>(
-                      duration: const Duration(milliseconds: 600),
-                      tween: Tween<double>(begin: 0.0, end: 1.0),
-                      curve: Curves.elasticOut,
-                      builder: (context, value, child) {
-                        return Transform.scale(
-                          scale: value,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(24),
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(Icons.check_rounded, color: theme.primaryColor, size: 80),
-                              ),
-                              const SizedBox(height: 24),
-                              const Text(
-                                'Survey Saved!',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
               ),
+            ),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: const Border(top: BorderSide(color: Color(0xFFEAECF0))),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF101828).withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
           ],
         ),
-        bottomNavigationBar: Container(
-          padding: const EdgeInsets.all(24.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            child: Row(
-              children: [
-                if (_currentSectionIndex > 0)
-                  Expanded(
-                    flex: 1,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        setState(() {
-                          _currentSectionIndex--;
-                        });
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: BorderSide(color: Colors.grey.shade300),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: const Text(
-                        'Back',
-                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                    ),
-                  ),
-                if (_currentSectionIndex > 0) const SizedBox(width: 16),
+        child: SafeArea(
+          child: Row(
+            children: [
+              if (_currentSectionIndex > 0)
                 Expanded(
-                  flex: 2,
-                  child: ElevatedButton(
-                    onPressed: _isSaving 
-                        ? null 
-                        : (_currentSectionIndex < _sections.length - 1)
-                            ? () {
-                                setState(() {
-                                  _currentSectionIndex++;
-                                });
-                              }
-                            : _saveForm,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
+                  flex: 1,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      setState(() {
+                        _currentSectionIndex--;
+                      });
+                    },
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(color: Color(0xFFD0D5DD)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : Text(
-                            (_currentSectionIndex < _sections.length - 1) ? 'Next' : 'Save & Finish',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16),
-                          ),
+                    child: const Text(
+                      'Back',
+                      style: TextStyle(color: Color(0xFF344054), fontWeight: FontWeight.w600, fontSize: 14),
+                    ),
                   ),
                 ),
-              ],
-            ),
+              if (_currentSectionIndex > 0) const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: _isSaving 
+                      ? null 
+                      : (_currentSectionIndex < _sections.length - 1)
+                          ? () {
+                              setState(() {
+                                _currentSectionIndex++;
+                              });
+                            }
+                          : _saveForm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1570EF),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
+                  ),
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : Text(
+                          (_currentSectionIndex < _sections.length - 1) ? 'Next Section' : 'Save & Finish',
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -479,7 +444,6 @@ class ImagePickerTab extends StatefulWidget {
 class _ImagePickerTabState extends State<ImagePickerTab> {
   final ImagePicker _picker = ImagePicker();
   List<String> _imageTypes = [];
-  String? _selectedType;
   List<Map<String, dynamic>> _queuedImages = [];
 
   @override
@@ -498,9 +462,6 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
       'Left Side View', 'Odometer', 'Original Number Plates View', 
       'Right Side View', 'Tickly', 'Trunk', 'Video'
     ]);
-    if (_imageTypes.isNotEmpty && _selectedType == null) {
-      _selectedType = _imageTypes.first;
-    }
 
     final box = Hive.box('imageQueue');
     final images = box.values
@@ -511,15 +472,8 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
     });
   }
 
-  Future<void> _pickImage() async {
-    if (_selectedType == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an image type first!')),
-      );
-      return;
-    }
-
-    final isVideo = _selectedType == 'Video';
+  Future<void> _pickImage(String type) async {
+    final isVideo = type == 'Video';
     final XFile? media = isVideo 
         ? await _picker.pickVideo(source: ImageSource.camera)
         : await _picker.pickImage(source: ImageSource.camera);
@@ -531,14 +485,18 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
       await syncService.queueImage(
         jobId: widget.jobId,
         imagePath: media.path,
-        imageType: _selectedType!,
+        imageType: type,
         dbId: widget.dbId,
       );
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${isVideo ? 'Video' : 'Image'} queued for upload!'))
+        SnackBar(
+          content: Text('${isVideo ? 'Video' : 'Image'} queued for $type!', style: const TextStyle(fontWeight: FontWeight.w500)),
+          backgroundColor: const Color(0xFF101828),
+          behavior: SnackBarBehavior.floating,
+        )
       );
 
       _loadQueuedImages();
@@ -548,133 +506,143 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(16.0),
       children: [
-        GlassCard(
-          borderRadius: 24,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Capture Evidence',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Image Type',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                initialValue: _selectedType,
-                items: _imageTypes.map((type) {
-                  return DropdownMenuItem<String>(value: type, child: Text(type));
-                }).toList(),
-                onChanged: (val) {
-                  setState(() {
-                    _selectedType = val;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _pickImage,
-                icon: Icon(_selectedType == 'Video' ? Icons.videocam_rounded : Icons.camera_alt_rounded),
-                label: Text(_selectedType == 'Video' ? 'Record Video' : 'Open Camera', style: const TextStyle(fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 32),
         const Text(
-          'Queued Images',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.black87),
+          'Capture Evidence',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF101828)),
         ),
-        const SizedBox(height: 16),
-        _queuedImages.isEmpty
-            ? const Center(child: Padding(
-                padding: EdgeInsets.all(32.0),
-                child: Text('No images queued yet.', style: TextStyle(color: Colors.grey)),
-              ))
-            : SizedBox(
-                height: 180,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _queuedImages.length,
-                  itemBuilder: (context, index) {
-                    final item = _queuedImages[index];
-                    return Container(
-                      width: 140,
-                      margin: const EdgeInsets.only(right: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))
-                        ]
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                              child: Hero(
-                                tag: 'image_${item['imagePath']}',
-                              child: item['imageType'] == 'Video'
-                                  ? Container(
-                                      color: Colors.black12,
-                                      child: const Center(
-                                        child: Icon(Icons.play_circle_fill_rounded, size: 48, color: Colors.black54),
-                                      ),
-                                    )
-                                  : Image.file(
-                                      File(item['imagePath']),
-                                      fit: BoxFit.cover,
-                                    ),
+        const SizedBox(height: 8),
+        const Text(
+          'Tap a card below to take a photo or video.',
+          style: TextStyle(fontSize: 14, color: Color(0xFF475467)),
+        ),
+        const SizedBox(height: 24),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.85,
+          ),
+          itemCount: _imageTypes.length,
+          itemBuilder: (context, index) {
+            final type = _imageTypes[index];
+            final existingItem = _queuedImages.where((img) => img['imageType'] == type).lastOrNull;
+
+            if (existingItem != null) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFEAECF0)),
+                  boxShadow: [
+                    BoxShadow(color: const Color(0xFF101828).withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 2))
+                  ]
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                        child: existingItem['imageType'] == 'Video'
+                            ? Container(
+                                color: const Color(0xFFF2F4F7),
+                                child: const Center(
+                                  child: Icon(Icons.play_circle_fill_rounded, size: 32, color: Color(0xFF98A2B3)),
+                                ),
+                              )
+                            : Image.file(
+                                File(existingItem['imagePath']),
+                                fit: BoxFit.cover,
                               ),
-                            ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            type,
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF101828)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item['imageType'],
-                                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Colors.black87),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      item['synced'] == true ? Icons.check_circle : Icons.cloud_upload,
-                                      size: 14,
-                                      color: item['synced'] == true ? Colors.green : Colors.orange,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      item['synced'] == true ? "Synced" : "Pending",
-                                      style: const TextStyle(fontSize: 11, color: Colors.black54, fontWeight: FontWeight.w600),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    existingItem['synced'] == true ? Icons.check_circle : Icons.cloud_upload,
+                                    size: 14,
+                                    color: existingItem['synced'] == true ? const Color(0xFF12B76A) : const Color(0xFFF79009),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    existingItem['synced'] == true ? "Synced" : "Pending",
+                                    style: const TextStyle(fontSize: 11, color: Color(0xFF667085), fontWeight: FontWeight.w500),
+                                  ),
+                                ],
+                              ),
+                              InkWell(
+                                onTap: () => _pickImage(type),
+                                child: const Icon(Icons.refresh_rounded, size: 16, color: Color(0xFF1570EF)),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    );
-                  },
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return InkWell(
+              onTap: () => _pickImage(type),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFEAECF0), style: BorderStyle.solid),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        type == 'Video' ? Icons.videocam_rounded : Icons.camera_alt_rounded,
+                        color: const Color(0xFF667085),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        type,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Color(0xFF344054)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            );
+          },
+        ),
         const SizedBox(height: 100), // padding for FAB
       ],
     );
