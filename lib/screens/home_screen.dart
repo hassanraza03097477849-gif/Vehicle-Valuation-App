@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/connectivity_service.dart';
 import '../services/sync_service.dart';
 import '../widgets/premium_job_card.dart';
+import '../widgets/animated_corporate_background.dart';
 import 'forms/dynamic_form_screen.dart';
 
 import 'all_surveys_screen.dart';
@@ -192,8 +193,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Container(color: theme.colorScheme.outline.withOpacity(0.2), height: 2),
         ),
       ),
-      body: CustomScrollView(
-        slivers: [
+      body: AnimatedCorporateBackground(
+        child: CustomScrollView(
+          slivers: [
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -304,6 +306,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
         ],
+      ),
       ),
     );
   }

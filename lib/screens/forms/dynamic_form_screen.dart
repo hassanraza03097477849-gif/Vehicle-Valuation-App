@@ -13,6 +13,7 @@ import '../../schemas/bank_schemas.dart';
 import '../../widgets/modern_form_field.dart';
 import '../../theme/app_theme.dart';
 import '../../services/theme_service.dart';
+import '../../widgets/animated_corporate_background.dart';
 class DynamicFormScreen extends StatefulWidget {
   final String jobId;
   final String bankName;
@@ -286,8 +287,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
           ],
         ),
       ),
-      body: Stack(
-        children: [
+      body: AnimatedCorporateBackground(
+        child: Stack(
+          children: [
           TabBarView(
             controller: _tabController,
             children: [
@@ -352,7 +354,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
                 ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16.0),

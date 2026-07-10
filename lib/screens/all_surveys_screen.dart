@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/premium_job_card.dart';
-import '../widgets/premium_job_card.dart';
+import '../widgets/animated_corporate_background.dart';
 import 'forms/dynamic_form_screen.dart';
 import 'package:provider/provider.dart';
 import '../services/theme_service.dart';
@@ -81,7 +81,8 @@ class _AllSurveysScreenState extends State<AllSurveysScreen> {
           child: Container(color: theme.colorScheme.outline.withOpacity(0.2), height: 2),
         ),
       ),
-      body: Column(
+      body: AnimatedCorporateBackground(
+        child: Column(
           children: [
             Container(
               color: theme.colorScheme.surface,
@@ -180,6 +181,7 @@ class _AllSurveysScreenState extends State<AllSurveysScreen> {
                   ),
           ),
         ],
+      ),
       ),
     );
   }

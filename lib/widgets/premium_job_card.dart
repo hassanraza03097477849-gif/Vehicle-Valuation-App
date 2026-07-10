@@ -3,6 +3,8 @@ import '../utils/bank_themes.dart';
 import '../theme/app_theme.dart';
 import '../services/theme_service.dart';
 import 'package:provider/provider.dart';
+import 'glass_card.dart';
+import 'bouncing_widget.dart';
 
 class PremiumJobCard extends StatelessWidget {
   final String title;
@@ -37,19 +39,11 @@ class PremiumJobCard extends StatelessWidget {
           ),
         );
       },
-      child: InkWell(
+      child: BouncingWidget(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
+        child: GlassCard(
           margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppTheme.borderRadius),
-            border: Border.all(color: theme.colorScheme.outline, width: 1),
-            boxShadow: Provider.of<ThemeService>(context).isDarkMode 
-                ? AppTheme.darkShadow 
-                : AppTheme.lightShadow,
-          ),
+          padding: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -57,9 +51,8 @@ class PremiumJobCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(AppTheme.borderRadius), topRight: Radius.circular(AppTheme.borderRadius)),
-                  border: Border(bottom: BorderSide(color: theme.colorScheme.outline.withOpacity(0.5), width: 1)),
+                  color: Colors.transparent,
+                  border: Border(bottom: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3), width: 1)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../services/theme_service.dart';
+import '../widgets/animated_corporate_background.dart';
+import '../widgets/glass_card.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -119,30 +121,19 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Container(
-                  width: double.infinity,
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  padding: const EdgeInsets.all(32.0),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadius),
-                    border: Border.all(
-                      color: theme.colorScheme.outline,
-                      width: 1, 
-                    ),
-                    boxShadow: Provider.of<ThemeService>(context).isDarkMode 
-                        ? AppTheme.darkShadow 
-                        : AppTheme.lightShadow,
-                  ),
-                  child: Column(
+      body: AnimatedCorporateBackground(
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: GlassCard(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -219,13 +210,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                         ),
                       ],
-                    ),
                   ),
                 ),
               ),
             ),
           ),
         ),
+        ),
+      ),
     );
   }
 }
