@@ -11,7 +11,7 @@ import '../../services/metadata_service.dart';
 import '../../models/form_field_schema.dart';
 import '../../schemas/bank_schemas.dart';
 import '../../widgets/modern_form_field.dart';
-
+import '../../widgets/high_contrast_background.dart';
 class DynamicFormScreen extends StatefulWidget {
   final String jobId;
   final String bankName;
@@ -156,11 +156,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
   }
 
   Widget _buildSectionPills() {
+    final theme = Theme.of(context);
     return Container(
       height: 60,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFEAECF0))),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(bottom: BorderSide(color: theme.colorScheme.outline.withOpacity(0.5))),
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -179,17 +180,17 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFFEFF8FF) : Colors.transparent,
+                color: isSelected ? theme.colorScheme.primary.withOpacity(0.1) : Colors.transparent,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: isSelected ? const Color(0xFFB2DDFF) : Colors.transparent,
+                  color: isSelected ? theme.colorScheme.primary : Colors.transparent,
                 ),
               ),
               child: Text(
                 _sections[index],
                 style: TextStyle(
-                  color: isSelected ? const Color(0xFF175CD3) : const Color(0xFF475467),
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   fontSize: 14,
                 ),
               ),
@@ -201,19 +202,20 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
   }
 
   Widget _buildCurrentSection() {
+    final theme = Theme.of(context);
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
       children: [
         Container(
           padding: const EdgeInsets.all(24.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFEAECF0)),
+            border: Border.all(color: theme.colorScheme.outline, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF101828).withValues(alpha: 0.02),
-                blurRadius: 4,
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -223,10 +225,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
             children: [
               Text(
                 _sections[_currentSectionIndex],
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF101828),
+                  fontWeight: FontWeight.w800,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 24),
@@ -252,42 +254,43 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFFCFCFD),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: theme.colorScheme.surface,
+        surfaceTintColor: theme.colorScheme.surface,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF101828)),
+        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
         title: Hero(
           tag: 'job_title_${widget.jobId}',
           child: Material(
             color: Colors.transparent,
             child: Text(
               '${widget.bankName} - Job ${widget.jobId}',
-              style: const TextStyle(
-                color: Color(0xFF101828),
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
                 fontSize: 18,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFF1570EF),
+          indicatorColor: theme.colorScheme.primary,
           indicatorWeight: 3,
-          labelColor: const Color(0xFF1570EF),
-          unselectedLabelColor: const Color(0xFF475467),
-          labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-          dividerColor: const Color(0xFFEAECF0),
+          labelColor: theme.colorScheme.primary,
+          unselectedLabelColor: theme.colorScheme.onSurface.withOpacity(0.6),
+          labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+          dividerColor: theme.colorScheme.outline.withOpacity(0.3),
           tabs: const [
             Tab(text: 'Vehicle Information'),
             Tab(text: 'Images & Media'),
           ],
         ),
       ),
-      body: Stack(
+      body: HighContrastBackground(
+        child: Stack(
         children: [
           TabBarView(
             controller: _tabController,
@@ -323,30 +326,29 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
               ImagePickerTab(jobId: widget.jobId, dbId: widget.dbId),
             ],
           ),
-          // Success Overlay
           if (_showSuccessOverlay)
             Positioned.fill(
               child: Container(
-                color: Colors.white.withValues(alpha: 0.95),
+                color: theme.colorScheme.surface.withOpacity(0.95),
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
                         padding: const EdgeInsets.all(20),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFECFDF3),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.check_circle_rounded, color: Color(0xFF12B76A), size: 64),
+                        child: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 64),
                       ),
                       const SizedBox(height: 24),
-                      const Text(
+                      Text(
                         'Survey Saved Successfully',
                         style: TextStyle(
-                          color: Color(0xFF101828),
+                          color: theme.colorScheme.onSurface,
                           fontSize: 24,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ],
@@ -356,14 +358,15 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
             ),
         ],
       ),
+      ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: const Border(top: BorderSide(color: Color(0xFFEAECF0))),
+          color: theme.colorScheme.surface,
+          border: Border(top: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3))),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF101828).withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, -4),
             ),
@@ -383,12 +386,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
                     },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: Color(0xFFD0D5DD)),
+                      side: BorderSide(color: theme.colorScheme.outline, width: 1.5),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Back',
-                      style: TextStyle(color: Color(0xFF344054), fontWeight: FontWeight.w600, fontSize: 14),
+                      style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w800, fontSize: 14),
                     ),
                   ),
                 ),
@@ -406,21 +409,21 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
                             }
                           : _saveForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1570EF),
-                    foregroundColor: Colors.white,
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     elevation: 0,
                   ),
                   child: _isSaving
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(color: theme.colorScheme.onPrimary, strokeWidth: 2),
                         )
                       : Text(
                           (_currentSectionIndex < _sections.length - 1) ? 'Next Section' : 'Save & Finish',
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
                         ),
                 ),
               ),
@@ -505,17 +508,18 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
-        const Text(
+        Text(
           'Capture Evidence',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF101828)),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: theme.colorScheme.onSurface),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Tap a card below to take a photo or video.',
-          style: TextStyle(fontSize: 14, color: Color(0xFF475467)),
+          style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface.withOpacity(0.8), fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 24),
         GridView.builder(
@@ -535,11 +539,11 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
             if (existingItem != null) {
               return Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFEAECF0)),
+                  border: Border.all(color: theme.colorScheme.outline, width: 1.5),
                   boxShadow: [
-                    BoxShadow(color: const Color(0xFF101828).withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 2))
+                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))
                   ]
                 ),
                 child: Column(
@@ -568,7 +572,7 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
                         children: [
                           Text(
                             type,
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF101828)),
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: theme.colorScheme.onSurface),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -586,7 +590,7 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
                                   const SizedBox(width: 4),
                                   Text(
                                     existingItem['synced'] == true ? "Synced" : "Pending",
-                                    style: const TextStyle(fontSize: 11, color: Color(0xFF667085), fontWeight: FontWeight.w500),
+                                    style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withOpacity(0.6), fontWeight: FontWeight.w600),
                                   ),
                                 ],
                               ),
@@ -609,22 +613,23 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF9FAFB),
+                  color: theme.colorScheme.surface.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFEAECF0), style: BorderStyle.solid),
+                  border: Border.all(color: theme.colorScheme.outline, width: 1.5),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
                       padding: const EdgeInsets.all(12),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
                         shape: BoxShape.circle,
+                        border: Border.all(color: theme.colorScheme.outline),
                       ),
                       child: Icon(
                         type == 'Video' ? Icons.videocam_rounded : Icons.camera_alt_rounded,
-                        color: const Color(0xFF667085),
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
                         size: 24,
                       ),
                     ),
@@ -634,7 +639,7 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
                       child: Text(
                         type,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Color(0xFF344054)),
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: theme.colorScheme.onSurface.withOpacity(0.8)),
                       ),
                     ),
                   ],

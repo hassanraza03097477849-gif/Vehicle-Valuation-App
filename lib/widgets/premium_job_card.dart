@@ -19,7 +19,8 @@ class PremiumJobCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = BankTheme.getTheme(bankName);
+    final bankTheme = BankTheme.getTheme(bankName);
+    final theme = Theme.of(context);
     return TweenAnimationBuilder(
       duration: const Duration(milliseconds: 500),
       tween: Tween<double>(begin: 0, end: 1),
@@ -39,12 +40,12 @@ class PremiumJobCard extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFEAECF0)),
+            border: Border.all(color: theme.colorScheme.outline, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF101828).withValues(alpha: 0.04),
+                color: Colors.black.withOpacity(0.1),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -56,10 +57,10 @@ class PremiumJobCard extends StatelessWidget {
               // Top Status Bar
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF9FAFB),
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-                  border: Border(bottom: BorderSide(color: Color(0xFFEAECF0))),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+                  border: Border(bottom: BorderSide(color: theme.colorScheme.outline.withOpacity(0.5), width: 1.5)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -71,7 +72,7 @@ class PremiumJobCard extends StatelessWidget {
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
-                              color: theme.primaryColor,
+                              color: bankTheme.primaryColor,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -79,10 +80,10 @@ class PremiumJobCard extends StatelessWidget {
                           Flexible(
                             child: Text(
                               bankName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF344054),
+                                fontWeight: FontWeight.w800,
+                                color: theme.colorScheme.onSurface,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -94,16 +95,16 @@ class PremiumJobCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF8FF),
+                        color: theme.colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFB2DDFF)),
+                        border: Border.all(color: theme.colorScheme.primary),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Pending',
                         style: TextStyle(
-                          color: Color(0xFF175CD3),
+                          color: theme.colorScheme.primary,
                           fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
@@ -122,10 +123,10 @@ class PremiumJobCard extends StatelessWidget {
                         color: Colors.transparent,
                         child: Text(
                           title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF101828),
+                            fontWeight: FontWeight.w800,
+                            color: theme.colorScheme.onSurface,
                             letterSpacing: -0.2,
                           ),
                         ),
@@ -134,13 +135,14 @@ class PremiumJobCard extends StatelessWidget {
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        const Icon(Icons.tag_rounded, size: 16, color: Color(0xFF98A2B3)),
+                        Icon(Icons.tag_rounded, size: 16, color: theme.colorScheme.onSurface.withOpacity(0.6)),
                         const SizedBox(width: 6),
                         Text(
                           jobId,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
-                            color: Color(0xFF475467),
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface.withOpacity(0.8),
                           ),
                         ),
                       ],

@@ -3,12 +3,14 @@ import 'package:provider/provider.dart';
 import '../services/connectivity_service.dart';
 import '../services/sync_service.dart';
 import '../widgets/premium_job_card.dart';
+import '../widgets/high_contrast_background.dart';
 import 'forms/dynamic_form_screen.dart';
-import 'all_surveys_screen.dart';
 
+import 'all_surveys_screen.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../services/auth_service.dart';
+import '../services/theme_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -86,19 +88,19 @@ class _HomeScreenState extends State<HomeScreen> {
     final isOnline = context.watch<ConnectivityService>().isOnline;
     final authService = context.watch<AuthService>();
     final userName = authService.user?['name'] ?? 'User';
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFCFCFD), // Ultra clean corporate off-white
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
-        surfaceTintColor: Colors.white,
+        surfaceTintColor: theme.colorScheme.surface,
         title: Row(
           children: [
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFEAECF0)),
+                border: Border.all(color: theme.colorScheme.outline),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -111,13 +113,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            const Flexible(
+            Flexible(
               child: Text(
                 'Valuation Pro',
                 style: TextStyle(
-                  color: Color(0xFF101828),
+                  color: theme.colorScheme.onSurface,
                   fontSize: 18,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -125,15 +127,27 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              context.watch<ThemeService>().isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              color: theme.colorScheme.onSurface,
+            ),
+            onPressed: () {
+              context.read<ThemeService>().toggleTheme();
+            },
+          ),
           Center(
             child: Container(
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: isOnline ? const Color(0xFFECFDF3) : const Color(0xFFFEF3F2),
+                color: isOnline 
+                    ? Colors.green.withOpacity(0.1) 
+                    : Colors.red.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isOnline ? const Color(0xFFA6F4C5) : const Color(0xFFFECDCA),
+                  color: isOnline ? Colors.green : Colors.red,
+                  width: 1.5,
                 ),
               ),
               child: Row(
@@ -141,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     width: 6, height: 6,
                     decoration: BoxDecoration(
-                      color: isOnline ? const Color(0xFF12B76A) : const Color(0xFFF04438),
+                      color: isOnline ? Colors.green : Colors.red,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -149,9 +163,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     isOnline ? 'Online' : 'Offline',
                     style: TextStyle(
-                      color: isOnline ? const Color(0xFF027A48) : const Color(0xFFB42318),
+                      color: isOnline ? Colors.green : Colors.red,
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ],
@@ -159,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF475467)),
+            icon: Icon(Icons.refresh_rounded, color: theme.colorScheme.onSurface),
             onPressed: () {
               setState(() => _isLoading = true);
               _fetchJobs();
@@ -167,18 +181,19 @@ class _HomeScreenState extends State<HomeScreen> {
             tooltip: 'Refresh Surveys',
           ),
           IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Color(0xFF475467)),
+            icon: Icon(Icons.logout_rounded, color: theme.colorScheme.onSurface),
             onPressed: _logout,
             tooltip: 'Logout',
           ),
           const SizedBox(width: 8),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: const Color(0xFFEAECF0), height: 1),
+          preferredSize: const Size.fromHeight(2),
+          child: Container(color: theme.colorScheme.outline.withOpacity(0.2), height: 2),
         ),
       ),
-      body: CustomScrollView(
+      body: HighContrastBackground(
+        child: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
@@ -186,33 +201,34 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Dashboard',
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF101828),
+                      fontWeight: FontWeight.w800,
+                      color: theme.colorScheme.onSurface,
                       letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Welcome back, $userName. Here is your overview.',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
-                      color: Color(0xFF475467),
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface.withOpacity(0.8),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Recent Jobs',
                         style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF101828),
+                          fontWeight: FontWeight.w800,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       TextButton(
@@ -229,8 +245,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                         style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFF1570EF),
-                          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                          foregroundColor: theme.colorScheme.primary,
+                          textStyle: const TextStyle(fontWeight: FontWeight.w800),
                         ),
                         child: const Text('View all'),
                       ),
@@ -241,15 +257,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           if (_isLoading)
-            const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator(color: Color(0xFF1570EF))),
+             SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator(color: theme.colorScheme.primary)),
             )
           else if (_jobs.isEmpty)
-            const SliverFillRemaining(
+             SliverFillRemaining(
               child: Center(
                 child: Text(
                   'No assigned jobs found.',
-                  style: TextStyle(color: Color(0xFF475467), fontSize: 16),
+                  style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             )
@@ -289,6 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
         ],
+      ),
       ),
     );
   }

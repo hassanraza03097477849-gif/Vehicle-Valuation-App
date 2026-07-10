@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../widgets/high_contrast_background.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -80,25 +81,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF475467),
+            fontWeight: FontWeight.w800,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           obscureText: isPassword ? _obscurePassword : false,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16, color: Color(0xFF101828)),
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: 'Enter your ${label.toLowerCase()}',
-            hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontWeight: FontWeight.w400),
-            prefixIcon: Icon(icon, color: const Color(0xFF667085), size: 20),
+            prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), size: 20),
             suffixIcon: isPassword ? IconButton(
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                color: const Color(0xFF667085),
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 size: 20,
               ),
               onPressed: () {
@@ -107,21 +107,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 });
               },
             ) : null,
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFD0D5DD), width: 1),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFD0D5DD), width: 1),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF1570EF), width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
         ),
       ],
@@ -130,9 +115,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      backgroundColor: const Color(0xFFFCFCFD), // Ultra clean corporate off-white
-      body: SafeArea(
+      body: HighContrastBackground(
         child: Center(
           child: SingleChildScrollView(
             child: Padding(
@@ -146,12 +132,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     constraints: const BoxConstraints(maxWidth: 400),
                     padding: const EdgeInsets.all(32.0),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFEAECF0)),
+                      border: Border.all(
+                        color: theme.colorScheme.outline,
+                        width: 2, // High contrast thick border
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF101828).withValues(alpha: 0.05),
+                          color: Colors.black.withOpacity(0.1),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -174,23 +163,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                         ),
                         const SizedBox(height: 24),
-                        const Text(
+                        Text(
                           'Welcome back',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF101828),
+                            fontWeight: FontWeight.w800,
+                            color: theme.colorScheme.onSurface,
                             letterSpacing: -0.5,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Enter your details to sign in.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
-                            color: Color(0xFF475467),
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface.withOpacity(0.8),
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -210,31 +200,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         const SizedBox(height: 32),
                         
                         SizedBox(
-                          height: 48,
+                          height: 54,
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _login,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1570EF),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
                             child: _isLoading
                                 ? const SizedBox(
                                     width: 24,
                                     height: 24,
                                     child: CircularProgressIndicator(
                                       color: Colors.white,
-                                      strokeWidth: 2.5,
+                                      strokeWidth: 3.0,
                                     ),
                                   )
                                 : const Text(
-                                    'Sign in',
+                                    'SIGN IN',
                                     style: TextStyle(
                                       fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.2,
                                     ),
                                   ),
                           ),

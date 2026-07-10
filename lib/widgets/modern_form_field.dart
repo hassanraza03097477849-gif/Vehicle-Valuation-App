@@ -50,8 +50,7 @@ class _ModernFormFieldState extends State<ModernFormField> {
       case 'number':
         content = TextFormField(
           focusNode: _focusNode,
-          decoration: _buildDecoration(),
-          style: const TextStyle(fontSize: 14, color: Color(0xFF101828), fontWeight: FontWeight.w500),
+          style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600),
           keyboardType: widget.field.type == 'number' ? TextInputType.number : TextInputType.text,
           initialValue: widget.initialValue?.toString(),
           onChanged: widget.onChanged,
@@ -129,14 +128,14 @@ class _ModernFormFieldState extends State<ModernFormField> {
               }
             }
           },
-          decoration: _buildDecoration().copyWith(
+          decoration: const InputDecoration().copyWith(
             suffixIcon: Icon(
               isDate ? Icons.calendar_today_rounded : Icons.access_time_rounded,
-              color: const Color(0xFF667085),
+              color: theme.colorScheme.onSurface.withOpacity(0.6),
               size: 20,
             ),
           ),
-          style: const TextStyle(fontSize: 14, color: Color(0xFF101828), fontWeight: FontWeight.w500),
+          style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600),
           controller: TextEditingController(text: displayValue),
         );
         break;
@@ -148,11 +147,11 @@ class _ModernFormFieldState extends State<ModernFormField> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isChecked ? const Color(0xFFEFF8FF) : Colors.white,
+              color: isChecked ? theme.colorScheme.primary.withOpacity(0.1) : theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: isChecked ? const Color(0xFF1570EF) : const Color(0xFFD0D5DD),
-                width: isChecked ? 2 : 1,
+                color: isChecked ? theme.colorScheme.primary : theme.colorScheme.outline,
+                width: isChecked ? 2 : 1.5,
               ),
             ),
             child: Row(
@@ -161,11 +160,11 @@ class _ModernFormFieldState extends State<ModernFormField> {
                   width: 20,
                   height: 20,
                   decoration: BoxDecoration(
-                    color: isChecked ? const Color(0xFF1570EF) : Colors.white,
+                    color: isChecked ? theme.colorScheme.primary : theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: isChecked ? const Color(0xFF1570EF) : const Color(0xFFD0D5DD),
-                      width: 1,
+                      color: isChecked ? theme.colorScheme.primary : theme.colorScheme.outline,
+                      width: 1.5,
                     ),
                   ),
                   child: isChecked
@@ -177,8 +176,8 @@ class _ModernFormFieldState extends State<ModernFormField> {
                   child: Text(
                     widget.field.label,
                     style: TextStyle(
-                      fontWeight: isChecked ? FontWeight.w600 : FontWeight.w500,
-                      color: isChecked ? const Color(0xFF175CD3) : const Color(0xFF344054),
+                      fontWeight: isChecked ? FontWeight.w800 : FontWeight.w600,
+                      color: isChecked ? theme.colorScheme.primary : theme.colorScheme.onSurface,
                       fontSize: 14,
                     ),
                   ),
@@ -200,10 +199,10 @@ class _ModernFormFieldState extends State<ModernFormField> {
         
         content = DropdownButtonFormField<String>(
           focusNode: _focusNode,
-          decoration: _buildDecoration(),
-          style: const TextStyle(fontSize: 14, color: Color(0xFF101828), fontWeight: FontWeight.w500),
+          style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600),
           initialValue: currentValue,
-          icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF667085)),
+          dropdownColor: theme.colorScheme.surface,
+          icon: Icon(Icons.expand_more_rounded, color: theme.colorScheme.onSurface.withOpacity(0.6)),
           items: options.map((option) => DropdownMenuItem(value: option, child: Text(option))).toList(),
           onChanged: (value) => widget.onChanged(value),
         );
@@ -220,10 +219,10 @@ class _ModernFormFieldState extends State<ModernFormField> {
           if (widget.field.type != 'checkbox') ...[
             Text(
               widget.field.label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF344054),
+                fontWeight: FontWeight.w800,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 6),
@@ -231,26 +230,6 @@ class _ModernFormFieldState extends State<ModernFormField> {
           content,
         ],
       ),
-    );
-  }
-  
-  InputDecoration _buildDecoration() {
-    return InputDecoration(
-      filled: true,
-      fillColor: Colors.white,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFFD0D5DD), width: 1),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFFD0D5DD), width: 1),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFF1570EF), width: 2),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     );
   }
 }
