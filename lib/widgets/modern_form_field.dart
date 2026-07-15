@@ -3,6 +3,7 @@ import '../models/form_field_schema.dart';
 import '../services/metadata_service.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import 'bouncing_widget.dart';
 
 class ModernFormField extends StatefulWidget {
   final FormFieldSchema field;
@@ -197,15 +198,43 @@ class _ModernFormFieldState extends State<ModernFormField> {
         if (currentValue != null && !options.contains(currentValue)) {
           options.add(currentValue);
         }
-        
-        content = DropdownButtonFormField<String>(
-          focusNode: _focusNode,
-          style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600),
-          initialValue: currentValue,
-          dropdownColor: theme.colorScheme.surface,
-          icon: Icon(Icons.expand_more_rounded, color: theme.colorScheme.onSurface.withOpacity(0.6)),
-          items: options.map((option) => DropdownMenuItem(value: option, child: Text(option))).toList(),
-          onChanged: (value) => widget.onChanged(value),
+        content = SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: options.map((option) {
+              final isSelected = currentValue == option;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: BouncingWidget(
+                  onTap: () {
+                    widget.onChanged(option);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected 
+                          ? theme.colorScheme.primary.withOpacity(0.1) 
+                          : theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                      border: Border.all(
+                        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outline,
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+                    child: Text(
+                      option,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         );
         break;
       default:

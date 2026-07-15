@@ -14,6 +14,8 @@ import '../../widgets/modern_form_field.dart';
 import '../../theme/app_theme.dart';
 import '../../services/theme_service.dart';
 import '../../widgets/animated_corporate_background.dart';
+import '../../widgets/glass_card.dart';
+import '../../widgets/bouncing_widget.dart';
 class DynamicFormScreen extends StatefulWidget {
   final String jobId;
   final String bankName;
@@ -504,6 +506,71 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
     }
   }
 
+  IconData _getIconForType(String type) {
+    switch (type) {
+      case 'Front View':
+      case 'Front Elevation':
+        return Icons.directions_car_rounded;
+      case 'Back View':
+        return Icons.time_to_leave_rounded;
+      case 'Left Side View':
+      case 'Right Side View':
+        return Icons.view_sidebar_rounded;
+      case 'Front Seat View':
+      case 'Back Seat View':
+      case 'Interior View':
+        return Icons.airline_seat_recline_normal_rounded;
+      case 'Front Number Plate View':
+      case 'Back Number Plate View':
+      case 'Original Number Plates View':
+        return Icons.branding_watermark_rounded;
+      case 'Engine View':
+      case 'Bonnet Inside View':
+        return Icons.engineering_rounded;
+      case 'Engine Number':
+      case 'Chassis No':
+        return Icons.pin_rounded;
+      case 'Odometer':
+        return Icons.speed_rounded;
+      case 'Key':
+        return Icons.vpn_key_rounded;
+      case 'Trunk':
+        return Icons.luggage_rounded;
+      case 'Tickly':
+        return Icons.label_rounded;
+      case 'Video':
+        return Icons.videocam_rounded;
+      default:
+        return Icons.camera_alt_rounded;
+    }
+  }
+
+  String? _getAssetPathForType(String type) {
+    switch (type) {
+      case 'Back Seat View': return 'assets/images/BACK SEAT VIEW.webp';
+      case 'Back Number Plate View': return 'assets/images/BACK NUMBER PLATE VIEW.webp';
+      case 'Back View': return 'assets/images/BACK VIEW.webp';
+      case 'Bonnet Inside View': return 'assets/images/BONET INSIDE VIEW.webp';
+      case 'Chassis No': return 'assets/images/CHASSIS NO.webp';
+      case 'Engine Number': return 'assets/images/ENGINE NO.webp';
+      case 'Engine View': return 'assets/images/ENGINE VIEW.webp';
+      case 'Front Elevation': return 'assets/images/FRONT ELEVATION.webp';
+      case 'Front Number Plate View': return 'assets/images/FRONT NO PLATE VIEW.webp';
+      case 'Front Seat View': return 'assets/images/FRONT SEAT VIEW.webp';
+      case 'Front View': return 'assets/images/FRONT VIEW.webp';
+      case 'Interior View': return 'assets/images/INTERIOR VIEW.webp';
+      case 'Key': return 'assets/images/KEY.webp';
+      case 'Left Side View': return 'assets/images/LEFT SIDE VIEW.webp';
+      case 'Odometer': return 'assets/images/ODOMETER VIEW.webp';
+      case 'Original Number Plates View': return 'assets/images/ORIGNAL NO PLATE VIEW.webp';
+      case 'Right Side View': return 'assets/images/RIGHT SIDE VIEW.webp';
+      case 'Tickly': return 'assets/images/TICKLY.webp';
+      case 'Trunk': return 'assets/images/TRUNK.webp';
+      case 'Video': return 'assets/images/VIDEO.webp';
+      default: return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -535,26 +602,19 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
             final existingItem = _queuedImages.where((img) => img['imageType'] == type).lastOrNull;
 
             if (existingItem != null) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadius),
-                  border: Border.all(color: theme.colorScheme.outline, width: 1),
-                  boxShadow: Provider.of<ThemeService>(context).isDarkMode 
-                      ? AppTheme.darkShadow 
-                      : AppTheme.lightShadow,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              return BouncingWidget(
+                onTap: () => _pickImage(type), // Tap to replace/retake
+                child: GlassCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
                         child: existingItem['imageType'] == 'Video'
                             ? Container(
-                                color: const Color(0xFFF2F4F7),
+                                color: Colors.black12,
                                 child: const Center(
-                                  child: Icon(Icons.play_circle_fill_rounded, size: 32, color: Color(0xFF98A2B3)),
+                                  child: Icon(Icons.play_circle_fill_rounded, size: 48, color: Colors.white70),
                                 ),
                               )
                             : Image.file(
@@ -562,82 +622,119 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
                                 fit: BoxFit.cover,
                               ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            type,
-                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: theme.colorScheme.onSurface),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    existingItem['synced'] == true ? Icons.check_circle : Icons.cloud_upload,
-                                    size: 14,
-                                    color: existingItem['synced'] == true ? const Color(0xFF12B76A) : const Color(0xFFF79009),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface.withOpacity(0.6),
+                          border: Border(top: BorderSide(color: theme.colorScheme.outline.withOpacity(0.5))),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              type,
+                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: theme.colorScheme.onSurface),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: existingItem['synced'] == true 
+                                      ? const Color(0xFF12B76A).withOpacity(0.2) 
+                                      : const Color(0xFFF79009).withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(4),
                                   ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    existingItem['synced'] == true ? "Synced" : "Pending",
-                                    style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withOpacity(0.6), fontWeight: FontWeight.w600),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        existingItem['synced'] == true ? Icons.check_circle : Icons.cloud_upload,
+                                        size: 12,
+                                        color: existingItem['synced'] == true ? const Color(0xFF12B76A) : const Color(0xFFF79009),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        existingItem['synced'] == true ? "Synced" : "Pending",
+                                        style: TextStyle(
+                                          fontSize: 10, 
+                                          color: existingItem['synced'] == true ? const Color(0xFF12B76A) : const Color(0xFFF79009), 
+                                          fontWeight: FontWeight.w800
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              InkWell(
-                                onTap: () => _pickImage(type),
-                                child: const Icon(Icons.refresh_rounded, size: 16, color: Color(0xFF1570EF)),
-                              ),
-                            ],
-                          ),
-                        ],
+                                ),
+                                const Icon(Icons.cameraswitch_rounded, size: 16, color: Color(0xFF1570EF)),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             }
 
-            return InkWell(
+            return BouncingWidget(
               onTap: () => _pickImage(type),
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: theme.colorScheme.outline, width: 1.5),
-                ),
+              child: GlassCard(
+                padding: EdgeInsets.zero,
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: theme.colorScheme.outline),
-                      ),
-                      child: Icon(
-                        type == 'Video' ? Icons.videocam_rounded : Icons.camera_alt_rounded,
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
-                        size: 24,
-                      ),
+                    Expanded(
+                      child: _getAssetPathForType(type) != null
+                          ? Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Image.asset(
+                                _getAssetPathForType(type)!,
+                                fit: BoxFit.contain,
+                              ),
+                            )
+                          : Center(
+                              child: Icon(
+                                _getIconForType(type),
+                                color: theme.colorScheme.onSurface.withOpacity(0.4),
+                                size: 48,
+                              ),
+                            ),
                     ),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text(
-                        type,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: theme.colorScheme.onSurface.withOpacity(0.8)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface.withOpacity(0.4),
+                        border: Border(top: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3))),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              type,
+                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: theme.colorScheme.onSurface),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.add_a_photo_rounded,
+                              size: 14,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

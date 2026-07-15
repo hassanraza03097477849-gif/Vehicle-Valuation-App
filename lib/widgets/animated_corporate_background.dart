@@ -44,6 +44,9 @@ class _AnimatedCorporateBackgroundState extends State<AnimatedCorporateBackgroun
     final Color orb2Color = isDark ? const Color(0xFF0F766E).withOpacity(0.4) : const Color(0xFF99F6E4).withOpacity(0.5); // Teal
     final Color orb3Color = isDark ? const Color(0xFF4C1D95).withOpacity(0.4) : const Color(0xFFE9D5FF).withOpacity(0.5); // Purple
 
+    final iconOpacity = isDark ? 0.05 : 0.08;
+    final iconColor = theme.colorScheme.onSurface.withOpacity(iconOpacity);
+
     return Stack(
       children: [
         // Base background color
@@ -107,6 +110,49 @@ class _AnimatedCorporateBackgroundState extends State<AnimatedCorporateBackgroun
               color: isDark ? Colors.black.withOpacity(0.1) : Colors.white.withOpacity(0.1),
             ),
           ),
+        ),
+
+        // Floating outline icons
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Stack(
+              children: [
+                Positioned(
+                  left: (math.cos(_controller.value * 2 * math.pi) * 40) + (size.width * 0.15),
+                  top: (math.sin(_controller.value * 2 * math.pi) * 40) + (size.height * 0.25),
+                  child: Transform.rotate(
+                    angle: _controller.value * 2 * math.pi,
+                    child: Icon(Icons.directions_car_outlined, size: 120, color: iconColor),
+                  ),
+                ),
+                Positioned(
+                  right: (math.sin(_controller.value * 2 * math.pi) * 50) + (size.width * 0.1),
+                  top: (math.cos(_controller.value * 2 * math.pi) * 50) + (size.height * 0.6),
+                  child: Transform.rotate(
+                    angle: -_controller.value * 2 * math.pi,
+                    child: Icon(Icons.description_outlined, size: 150, color: iconColor),
+                  ),
+                ),
+                Positioned(
+                  left: (math.cos(_controller.value * 2 * math.pi + math.pi/2) * 60) + (size.width * 0.4),
+                  bottom: (math.sin(_controller.value * 2 * math.pi + math.pi/2) * 60) + (size.height * 0.1),
+                  child: Transform.rotate(
+                    angle: _controller.value * 2 * math.pi,
+                    child: Icon(Icons.check_circle_outline_rounded, size: 100, color: iconColor),
+                  ),
+                ),
+                Positioned(
+                  right: (math.cos(_controller.value * 2 * math.pi + math.pi) * 30) + (size.width * 0.3),
+                  top: (math.sin(_controller.value * 2 * math.pi + math.pi) * 30) + (size.height * 0.1),
+                  child: Transform.rotate(
+                    angle: -_controller.value * 2 * math.pi,
+                    child: Icon(Icons.hexagon_outlined, size: 80, color: iconColor),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
 
         // The actual app content on top
