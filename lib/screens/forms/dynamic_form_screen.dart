@@ -916,15 +916,23 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
                                       Icon(
                                         existingItem['synced'] == true ? Icons.check_circle : Icons.cloud_upload,
                                         size: 12,
-                                        color: existingItem['synced'] == true ? const Color(0xFF12B76A) : const Color(0xFFF79009),
+                                        color: existingItem['synced'] == true ? const Color(0xFF12B76A) : (existingItem['error'] != null ? Colors.red : const Color(0xFFF79009)),
                                       ),
                                       const SizedBox(width: 4),
-                                      Text(
-                                        existingItem['synced'] == true ? "Synced" : "Pending",
-                                        style: TextStyle(
-                                          fontSize: 10, 
-                                          color: existingItem['synced'] == true ? const Color(0xFF12B76A) : const Color(0xFFF79009), 
-                                          fontWeight: FontWeight.w800
+                                      Flexible(
+                                        child: Text(
+                                          existingItem['synced'] == true 
+                                              ? "Synced" 
+                                              : (existingItem['error'] ?? "Pending"),
+                                          style: TextStyle(
+                                            fontSize: 10, 
+                                            color: existingItem['synced'] == true 
+                                                ? const Color(0xFF12B76A) 
+                                                : (existingItem['error'] != null ? Colors.red : const Color(0xFFF79009)), 
+                                            fontWeight: FontWeight.w800
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                     ],

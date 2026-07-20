@@ -161,10 +161,18 @@ class SyncService extends ChangeNotifier {
 
           if (response.statusCode == 200 || response.statusCode == 201) {
             item['synced'] = true;
+            item['error'] = null; // Clear error
+            await box.put(key, item);
+          } else {
+            final respStr = await response.stream.bytesToString();
+            debugPrint('Failed to sync image, status: ${response.statusCode}, body: $respStr');
+            item['error'] = 'Err: ${response.statusCode}';
             await box.put(key, item);
           }
         } catch (e) {
-          debugPrint('Image sync failed for $jobId: $e');
+          debugPrint('Sync image failed: $e');
+          item['error'] = 'Net Err';
+          await box.put(key, item);
         }
       }
     }
