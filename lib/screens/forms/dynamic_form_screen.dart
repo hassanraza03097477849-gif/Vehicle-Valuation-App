@@ -462,6 +462,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
               ImagePickerTab(jobId: widget.jobId, dbId: widget.dbId),
             ],
           ),
+          
+          // Success Overlay
           if (_showSuccessOverlay)
             Positioned.fill(
               child: Container(
@@ -492,6 +494,57 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
                 ),
               ),
             ),
+            
+          // Full Screen Loading Overlay for Saving
+          if (_isSaving && !_showSuccessOverlay)
+            Positioned.fill(
+              child: Container(
+                color: theme.colorScheme.surface.withOpacity(0.8),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(
+                          color: theme.colorScheme.primary,
+                          strokeWidth: 3,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Submitting Survey...',
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Uploading images & data',
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
           if (_isLoading)
             Positioned.fill(
               child: Container(
@@ -681,7 +734,12 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
 
     final XFile? media = isVideo 
         ? await _picker.pickVideo(source: source)
-        : await _picker.pickImage(source: source, imageQuality: 50);
+        : await _picker.pickImage(
+            source: source, 
+            imageQuality: 50,
+            maxWidth: 1920,
+            maxHeight: 1080,
+          );
         
     if (media != null) {
       if (!mounted) return;
