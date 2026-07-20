@@ -21,6 +21,7 @@ class SyncService extends ChangeNotifier {
       'bankName': bankName,
       'payload': data,
       'synced': false,
+      'readyToSync': false, // Draft mode by default
       'dbId': dbId,
     });
     notifyListeners();
@@ -49,6 +50,7 @@ class SyncService extends ChangeNotifier {
       'imagePath': imagePath,
       'imageType': imageType,
       'synced': false,
+      'readyToSync': false,
       'dbId': dbId,
     };
     
@@ -61,6 +63,27 @@ class SyncService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> submitSurvey(String jobId) async {
+    final box = Hive.box('surveyQueue');
+    final item = box.get(jobId);
+    if (item != null) {
+      item['readyToSync'] = true;
+      await box.put(jobId, item);
+    }
+    
+    final imgBox = Hive.box('imageQueue');
+    for (var key in imgBox.keys) {
+      final img = imgBox.get(key);
+      if (img != null && img['jobId'] == jobId) {
+        img['readyToSync'] = true;
+        await imgBox.put(key, img);
+      }
+    }
+    
+    await syncPendingSurveys();
+  }
+
+
   Future<void> syncPendingSurveys() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -69,13 +92,14 @@ class SyncService extends ChangeNotifier {
     final box = Hive.box('surveyQueue');
     for (var key in box.keys) {
       final item = box.get(key);
-      if (item != null && item['synced'] == false) {
+      if (item != null && item['synced'] == false && item['readyToSync'] == true) {
         String bankName = item['bankName'];
         String jobId = item['jobId'];
         String dbId = item['dbId'] ?? jobId; // fallback for older items
         Map<String, dynamic> payload = Map<String, dynamic>.from(item['payload']);
 
-        String endpoint = '$baseUrl/storeReportData$bankName/$dbId';
+        String apiBankName = bankName == 'OTHERS' ? 'Others' : bankName;
+        String endpoint = '$baseUrl/storeReportData$apiBankName/$dbId';
 
         try {
           final response = await http.put(
@@ -108,7 +132,7 @@ class SyncService extends ChangeNotifier {
     final box = Hive.box('imageQueue');
     for (var key in box.keys) {
       final item = box.get(key);
-      if (item != null && item['synced'] == false) {
+      if (item != null && item['synced'] == false && item['readyToSync'] == true) {
         String jobId = item['jobId'];
         String dbId = item['dbId'] ?? jobId; // fallback for older items
         String imagePath = item['imagePath'];
@@ -124,7 +148,14 @@ class SyncService extends ChangeNotifier {
           request.fields['job_id'] = dbId;
           request.fields['filename'] = imageType; // This maps to ftype in backend
 
-          request.files.add(await http.MultipartFile.fromPath('myfile', imagePath));
+          String ext = imagePath.split('.').last;
+          if (ext.length > 4 || !imagePath.contains('.')) ext = 'jpg';
+          
+          request.files.add(await http.MultipartFile.fromPath(
+            'myfile', 
+            imagePath,
+            filename: 'upload.$ext',
+          ));
 
           var response = await request.send();
 

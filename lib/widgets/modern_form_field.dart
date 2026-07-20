@@ -25,18 +25,58 @@ class _ModernFormFieldState extends State<ModernFormField> {
   late dynamic currentValue;
   final FocusNode _focusNode = FocusNode();
 
+  late TextEditingController _controller;
+
   @override
   void initState() {
     super.initState();
     currentValue = widget.initialValue;
+    _controller = TextEditingController(text: _getFormattedValue(widget.initialValue));
     _focusNode.addListener(() {
       setState(() {});
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant ModernFormField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue) {
+      currentValue = widget.initialValue;
+      final newValue = _getFormattedValue(widget.initialValue);
+      if (_controller.text != newValue) {
+        _controller.text = newValue;
+      }
+    }
+  }
+
+  String _getFormattedValue(dynamic value) {
+    String displayValue = value?.toString() ?? '';
+    if (displayValue.isEmpty) return '';
+    
+    if (widget.field.type == 'date') {
+      try {
+        final parsed = DateTime.parse(displayValue);
+        return "${parsed.day.toString().padLeft(2, '0')}-${parsed.month.toString().padLeft(2, '0')}-${parsed.year}";
+      } catch (_) {}
+    } else if (widget.field.type == 'time') {
+       try {
+         if (displayValue.length >= 5) {
+           final parts = displayValue.split(':');
+           int h = int.parse(parts[0]);
+           int m = int.parse(parts[1]);
+           final hourStr = h > 12 ? (h - 12).toString().padLeft(2, '0') : (h == 0 ? '12' : h.toString().padLeft(2, '0'));
+           final period = h >= 12 ? 'PM' : 'AM';
+           return "$hourStr:${m.toString().padLeft(2, '0')} $period";
+         }
+       } catch (_) {}
+    }
+    return displayValue;
   }
   
   @override
   void dispose() {
     _focusNode.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -52,36 +92,19 @@ class _ModernFormFieldState extends State<ModernFormField> {
       case 'number':
         content = TextFormField(
           focusNode: _focusNode,
+          controller: _controller,
           style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600),
           keyboardType: widget.field.type == 'number' ? TextInputType.number : TextInputType.text,
-          initialValue: widget.initialValue?.toString(),
           onChanged: widget.onChanged,
         );
         break;
       case 'date':
       case 'time':
         final isDate = widget.field.type == 'date';
-        String displayValue = widget.initialValue?.toString() ?? '';
-        if (isDate && displayValue.isNotEmpty) {
-          try {
-            final parsed = DateTime.parse(displayValue);
-            displayValue = "${parsed.day.toString().padLeft(2, '0')}-${parsed.month.toString().padLeft(2, '0')}-${parsed.year}";
-          } catch (_) {}
-        } else if (!isDate && displayValue.isNotEmpty) {
-           try {
-             if (displayValue.length >= 5) {
-               final parts = displayValue.split(':');
-               int h = int.parse(parts[0]);
-               int m = int.parse(parts[1]);
-               final hourStr = h > 12 ? (h - 12).toString().padLeft(2, '0') : (h == 0 ? '12' : h.toString().padLeft(2, '0'));
-               final period = h >= 12 ? 'PM' : 'AM';
-               displayValue = "$hourStr:${m.toString().padLeft(2, '0')} $period";
-             }
-           } catch (_) {}
-        }
 
         content = TextFormField(
           focusNode: _focusNode,
+          controller: _controller,
           readOnly: true,
           onTap: () async {
             if (isDate) {
@@ -102,7 +125,7 @@ class _ModernFormFieldState extends State<ModernFormField> {
                 },
               );
               if (date != null) {
-                final dateStr = "${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}";
+                final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
                 widget.onChanged(dateStr);
               }
             } else {
@@ -122,10 +145,7 @@ class _ModernFormFieldState extends State<ModernFormField> {
               );
               if (time != null) {
                 if (!context.mounted) return;
-                final hourStr = time.hour > 12 ? (time.hour - 12).toString().padLeft(2, '0') : (time.hour == 0 ? '12' : time.hour.toString().padLeft(2, '0'));
-                final minStr = time.minute.toString().padLeft(2, '0');
-                final period = time.hour >= 12 ? 'PM' : 'AM';
-                final timeStr = "$hourStr:$minStr $period";
+                final timeStr = "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
                 widget.onChanged(timeStr);
               }
             }
@@ -138,7 +158,6 @@ class _ModernFormFieldState extends State<ModernFormField> {
             ),
           ),
           style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600),
-          controller: TextEditingController(text: displayValue),
         );
         break;
       case 'checkbox':
@@ -190,13 +209,13 @@ class _ModernFormFieldState extends State<ModernFormField> {
         );
         break;
       case 'dropdown':
-        List<String> options = widget.field.options ?? [];
+        List<String> options = List<String>.from(widget.field.options ?? []);
         if (options.isEmpty) {
-          options = metadata.getCachedOptions(widget.field.key, ['Option 1', 'Option 2']);
+          options = List<String>.from(metadata.getCachedOptions(widget.field.key, ['Option 1', 'Option 2']));
         }
-        String? currentValue = widget.initialValue?.toString();
-        if (currentValue != null && !options.contains(currentValue)) {
-          options.add(currentValue);
+        String? currentVal = currentValue?.toString();
+        if (currentVal != null && currentVal.trim().isNotEmpty && currentVal != 'null' && !options.contains(currentVal)) {
+          options.add(currentVal);
         }
         content = SingleChildScrollView(
           scrollDirection: Axis.horizontal,

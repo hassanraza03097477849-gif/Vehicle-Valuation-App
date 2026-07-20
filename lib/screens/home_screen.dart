@@ -5,6 +5,7 @@ import '../services/sync_service.dart';
 import '../widgets/premium_job_card.dart';
 import '../widgets/animated_corporate_background.dart';
 import 'forms/dynamic_form_screen.dart';
+import 'package:hive/hive.dart';
 
 import 'all_surveys_screen.dart';
 import 'dart:convert';
@@ -58,11 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
             String b = j['bankName']!.toUpperCase();
             if (b.contains('ASKARI') || b == 'ASKBL') j['bankName'] = 'ASKBL';
             else if (b.contains('MCB')) j['bankName'] = 'MCB';
-            else if (b.contains('BANK AL FALAH') || b.contains('BAF')) j['bankName'] = 'BAF';
+            else if ((b.contains('ALFALAH') || b.contains('AL FALAH') || b.contains('BAF')) && !b.contains('BAFI') && !b.contains('ISLAMIC')) j['bankName'] = 'BAF';
             else if (b.contains('FAYSAL') || b.contains('FSBL')) j['bankName'] = 'FSBL';
             else if (b.contains('MEEZAN') || b.contains('MBL')) j['bankName'] = 'MBL';
             else if (b.contains('MOBILINK') || b.contains('MMB')) j['bankName'] = 'MMB';
-            else if (b.contains('SUMMIT') || b.contains('SMBL')) j['bankName'] = 'SMBL';
+            else if (b.contains('SUMMIT') || b.contains('SMBL') || b.contains('MAKRAMAH') || b.contains('BML') || b.contains('SAMBA')) j['bankName'] = 'SMBL';
             else j['bankName'] = 'OTHERS';
           }
           _isLoading = false;
@@ -80,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final authService = Provider.of<AuthService>(context, listen: false);
     await authService.logout();
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed('/login'); // Assuming login is pushed manually or using auth state
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   @override
@@ -194,8 +195,13 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: AnimatedCorporateBackground(
-        child: CustomScrollView(
-          slivers: [
+        child: RefreshIndicator(
+          onRefresh: () async { await _fetchJobs(); },
+          color: theme.colorScheme.primary,
+          backgroundColor: theme.colorScheme.surface,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -277,11 +283,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final job = _jobs[index];
+                    
+                    // Check if there is an unsubmitted draft for this job
+                    bool hasDraft = false;
+                    try {
+                      final box = Hive.box('surveyQueue');
+                      final item = box.get(job['jobId']);
+                      if (item != null && item['synced'] == false && item['readyToSync'] != true) {
+                        hasDraft = true;
+                      }
+                    } catch (e) {
+                      debugPrint('Error checking draft status: $e');
+                    }
+                    
                     return PremiumJobCard(
                       title: job['title']!,
                       bankName: job['bankName']!,
                       jobId: job['jobId']!,
                       animationDelay: index * 0.1, // Staggered animation
+                      hasDraft: hasDraft,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -296,7 +316,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               return FadeTransition(opacity: animation, child: child);
                             },
                           ),
-                        );
+                        ).then((value) {
+                          if (value == true) {
+                            if (mounted) setState(() => _isLoading = true);
+                            _fetchJobs();
+                          } else {
+                            if (mounted) setState(() {});
+                          }
+                        });
                       },
                     );
                   },
@@ -305,8 +332,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
-        ],
-      ),
+          ],
+        ),
+        ),
       ),
     );
   }

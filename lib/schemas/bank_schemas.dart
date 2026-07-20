@@ -3338,7 +3338,7 @@ class BankSchemas {
       label: 'Drive',
       type: 'dropdown',
       section: 'Vehicle\'s Details',
-      options: null,
+      options: ['Right Hand', 'Left Hand'],
     ),
     FormFieldSchema(
       key: 'right_side',

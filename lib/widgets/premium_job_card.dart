@@ -12,6 +12,7 @@ class PremiumJobCard extends StatelessWidget {
   final String jobId;
   final VoidCallback onTap;
   final double animationDelay;
+  final bool hasDraft;
 
   const PremiumJobCard({
     super.key,
@@ -20,6 +21,7 @@ class PremiumJobCard extends StatelessWidget {
     required this.jobId,
     required this.onTap,
     this.animationDelay = 0.0,
+    this.hasDraft = false,
   });
 
   @override
@@ -83,23 +85,30 @@ class PremiumJobCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: theme.colorScheme.primary),
-                      ),
-                      child: Text(
-                        'Pending',
-                        style: TextStyle(
-                          color: theme.colorScheme.primary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
+                    if (hasDraft)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF79009).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFF79009)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.cloud_upload_rounded, size: 14, color: Color(0xFFF79009)),
+                            SizedBox(width: 4),
+                            Text(
+                              'Pending',
+                              style: TextStyle(
+                                color: Color(0xFFF79009),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),

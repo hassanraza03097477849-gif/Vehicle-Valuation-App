@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import '../widgets/premium_job_card.dart';
 import '../widgets/animated_corporate_background.dart';
 import 'forms/dynamic_form_screen.dart';
@@ -155,11 +156,24 @@ class _AllSurveysScreenState extends State<AllSurveysScreen> {
                     itemCount: filteredJobs.length,
                     itemBuilder: (context, index) {
                       final job = filteredJobs[index];
+                      // Check if there is an unsubmitted draft for this job
+                      bool hasDraft = false;
+                      try {
+                        final box = Hive.box('surveyQueue');
+                        final item = box.get(job['jobId']);
+                        if (item != null && item['synced'] == false && item['readyToSync'] != true) {
+                          hasDraft = true;
+                        }
+                      } catch (e) {
+                        debugPrint('Error checking draft status: $e');
+                      }
+
                       return PremiumJobCard(
                         title: job['title']!,
                         bankName: job['bankName']!,
                         jobId: job['jobId']!,
                         animationDelay: 0.0,
+                        hasDraft: hasDraft,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -174,7 +188,13 @@ class _AllSurveysScreenState extends State<AllSurveysScreen> {
                                 return FadeTransition(opacity: animation, child: child);
                               },
                             ),
-                          );
+                          ).then((value) {
+                            if (value == true) {
+                              Navigator.pop(context, true);
+                            } else {
+                              if (mounted) setState(() {});
+                            }
+                          });
                         },
                       );
                     },

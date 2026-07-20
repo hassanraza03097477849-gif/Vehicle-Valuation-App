@@ -72,20 +72,66 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
     final savedData = box.get(widget.jobId);
     
     if (savedData != null && savedData['synced'] == false) {
-      setState(() {
-        final payload = Map<String, dynamic>.from(savedData['payload']);
-        for (var key in payload.keys) {
-          _formData[key] = payload[key];
-        }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showUnsavedChangesDialog(savedData);
       });
       return;
     }
 
+    setState(() { _isLoading = true; });
+    await _fetchFromERP(savedData);
+    if (mounted) {
+      setState(() { _isLoading = false; });
+    }
+  }
+
+  void _showUnsavedChangesDialog(dynamic savedData) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Unsaved Changes Found', style: TextStyle(fontWeight: FontWeight.w800)),
+          content: const Text('You have offline changes that have not been synced to the ERP. Do you want to resume editing your offline changes, or wipe them and fetch the latest data from the ERP?'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                final box = Hive.box('surveyQueue');
+                await box.delete(widget.jobId);
+                await _fetchFromERP(null);
+              },
+              child: const Text('Wipe & Fetch from ERP', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() {
+                  final payload = Map<String, dynamic>.from(savedData['payload']);
+                  for (var key in payload.keys) {
+                    _formData[key] = payload[key];
+                  }
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              ),
+              child: const Text('Resume Offline Changes', style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _fetchFromERP(dynamic savedData) async {
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
       if (authService.token != null) {
+        String apiBankName = widget.bankName == 'OTHERS' ? 'Others' : widget.bankName;
         final response = await http.get(
-          Uri.parse('${authService.baseUrl}/getReportDetails${widget.bankName}/${widget.dbId}'),
+          Uri.parse('${authService.baseUrl}/getReportDetails$apiBankName/${widget.dbId}'),
           headers: {
             'Accept': 'application/json',
             'Authorization': 'Bearer ${authService.token}',
@@ -97,9 +143,26 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
           if (data != null && data.isNotEmpty) {
             setState(() {
               final item = data is List ? data.first : data;
+              
+              final Map<String, String> dbToSchemaAlias = {
+                'acq_is_reconditioned': 'reconditioned',
+                'acq_is_repossesed': 'repossesed',
+                'document_seen_is_push_start': 'is_push_start',
+                'document_seen_is_key_start': 'is_key_start',
+                'air_conditionar_avalibility': 'air_conditionar_available',
+                'heater_avalibility': 'heater_available',
+                'bluetooth_avalibility': 'cd_player_available',
+                'cameras_avalibility': 'cameras_available',
+                'inspected_on_time': 'inspected_time',
+                'car_toolkit': 'tool_kit',
+              };
+
               for (var key in item.keys) {
-                if (_formData.containsKey(key)) {
-                  _formData[key] = item[key]?.toString();
+                String schemaKey = dbToSchemaAlias[key] ?? key;
+                if (_formData.containsKey(schemaKey)) {
+                  var val = item[key]?.toString();
+                  if (val == 'null') val = null;
+                  _formData[schemaKey] = val;
                 }
               }
             });
@@ -125,6 +188,79 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
     final syncService = Provider.of<SyncService>(context, listen: false);
     syncService.saveSurvey(widget.jobId, widget.bankName, _formData, widget.dbId);
   }
+
+  Future<void> _submitSurvey() async {
+    // Show confirmation dialog first
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Submission', style: TextStyle(fontWeight: FontWeight.w800)),
+        content: const Text('Are you sure you want to submit this survey? Please ensure all required images and fields are completed.'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Submit Survey'),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirm != true) return;
+
+    // If we are on the images tab, we MUST switch back to the form tab 
+    // so the Form widget mounts and we can validate it safely.
+    if (_tabController.index != 0) {
+      _tabController.animateTo(0);
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+    
+    // Safety check just in case
+    if (_formKey.currentState == null) return;
+
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      
+      setState(() {
+        _isSaving = true;
+      });
+      
+      final syncService = Provider.of<SyncService>(context, listen: false);
+      syncService.saveSurvey(widget.jobId, widget.bankName, _formData, widget.dbId);
+      await syncService.submitSurvey(widget.jobId);
+      
+      await Future.delayed(const Duration(milliseconds: 1000));
+      
+      if (!mounted) return;
+      
+      setState(() {
+        _isSaving = false;
+        _showSuccessOverlay = true;
+      });
+      
+      // Wait for a bit so user can see the "Survey Saved Successfully" overlay
+      await Future.delayed(const Duration(milliseconds: 2000));
+      if (!mounted) return;
+      
+      Navigator.pop(context, true); // Pass true to indicate we submitted
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill all required fields.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }  
 
   Future<void> _saveForm() async {
     if (_formKey.currentState!.validate()) {
@@ -356,6 +492,47 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
                 ),
               ),
             ),
+          if (_isLoading)
+            Positioned.fill(
+              child: Container(
+                color: theme.colorScheme.surface.withOpacity(0.6),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.primary),
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          'Fetching from ERP...',
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -375,39 +552,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
         child: SafeArea(
           child: Row(
             children: [
-              if (_currentSectionIndex > 0)
-                Expanded(
-                  flex: 1,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      setState(() {
-                        _currentSectionIndex--;
-                      });
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(color: theme.colorScheme.outline, width: 1.5),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: Text(
-                      'Back',
-                      style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w800, fontSize: 14),
-                    ),
-                  ),
-                ),
-              if (_currentSectionIndex > 0) const SizedBox(width: 12),
               Expanded(
-                flex: 2,
                 child: ElevatedButton(
-                  onPressed: _isSaving 
-                      ? null 
-                      : (_currentSectionIndex < _sections.length - 1)
-                          ? () {
-                              setState(() {
-                                _currentSectionIndex++;
-                              });
-                            }
-                          : _saveForm,
+                  onPressed: _isSaving ? null : _submitSurvey,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
                     foregroundColor: theme.colorScheme.onPrimary,
@@ -421,9 +568,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen>
                           height: 20,
                           child: CircularProgressIndicator(color: theme.colorScheme.onPrimary, strokeWidth: 2),
                         )
-                      : Text(
-                          (_currentSectionIndex < _sections.length - 1) ? 'Next Section' : 'Save & Finish',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                      : const Text(
+                          'Submit Survey',
+                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
                         ),
                 ),
               ),
@@ -477,9 +624,64 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
 
   Future<void> _pickImage(String type) async {
     final isVideo = type == 'Video';
+    final theme = Theme.of(context);
+    
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                isVideo ? 'Select Video Source' : 'Select Image Source',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(isVideo ? Icons.videocam_rounded : Icons.camera_alt_rounded, color: theme.colorScheme.primary),
+                ),
+                title: Text(isVideo ? 'Record a Video' : 'Take a Photo', style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface)),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.photo_library_rounded, color: theme.colorScheme.primary),
+                ),
+                title: Text('Choose from Library', style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface)),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
     final XFile? media = isVideo 
-        ? await _picker.pickVideo(source: ImageSource.camera)
-        : await _picker.pickImage(source: ImageSource.camera);
+        ? await _picker.pickVideo(source: source)
+        : await _picker.pickImage(source: source, imageQuality: 50);
         
     if (media != null) {
       if (!mounted) return;
@@ -696,6 +898,7 @@ class _ImagePickerTabState extends State<ImagePickerTab> {
                               child: Image.asset(
                                 _getAssetPathForType(type)!,
                                 fit: BoxFit.contain,
+                                color: theme.brightness == Brightness.dark ? Colors.white : null,
                               ),
                             )
                           : Center(
